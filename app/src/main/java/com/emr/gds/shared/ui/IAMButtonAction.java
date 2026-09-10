@@ -182,7 +182,11 @@ public class IAMButtonAction {
         gradient.setToggleGroup(themeGroup);
         gradient.setOnAction(e -> updateTheme("gradient-theme", IAMTextArea.Theme.GRADIENT));
 
-        themeMenu.getItems().addAll(light, dark, gradient);
+        RadioMenuItem buffet = new RadioMenuItem("Bernard Buffet");
+        buffet.setToggleGroup(themeGroup);
+        buffet.setOnAction(e -> updateTheme("buffet-theme", IAMTextArea.Theme.BUFFET));
+
+        themeMenu.getItems().addAll(light, dark, gradient, buffet);
 
         menu.getItems().addAll(fontSizeMenu, themeMenu);
         return menu;
@@ -206,7 +210,7 @@ public class IAMButtonAction {
     private void updateRootTheme(String className) {
         Scene scene = app.getPrimaryStage().getScene();
         if (scene != null) {
-            scene.getRoot().getStyleClass().removeAll("dark-theme", "gradient-theme");
+            scene.getRoot().getStyleClass().removeAll("dark-theme", "gradient-theme", "buffet-theme");
             if (!className.isEmpty()) {
                 scene.getRoot().getStyleClass().add(className);
             }

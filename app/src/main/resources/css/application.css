@@ -42,6 +42,36 @@
     border-color: #fcd34d;
 }
 
+/* Bernard Buffet Theme: stark black contours, raw-canvas greys, hard square
+   edges, a single muted blood-red accent — his austere expressionist palette. */
+.root.buffet-theme {
+    -fx-font-family: "Georgia", "Times New Roman", serif;
+    primary-color: #111111; /* Stark ink black */
+    primary-dark: #000000;
+    secondary-color: #7a1f1f; /* Muted blood-red accent */
+    -fx-accent: secondary-color;
+    app-main-bg: #d9d6cf; /* Raw canvas grey */
+    surface-color: #eceae4;
+    text-color: #111111;
+    text-color-light: #f5f3ee;
+    border-color: #000000;
+}
+
+.root.buffet-theme .menu-button,
+.root.buffet-theme .button {
+    -fx-font-family: "Georgia", serif;
+    -fx-font-style: normal;
+    -fx-border-color: #000000;
+    -fx-border-width: 1.5;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.root.buffet-theme .text-area {
+    -fx-font-family: "Georgia", serif;
+    -fx-font-style: normal;
+}
+
 /* Font Size Classes */
 .root.font-small { -fx-font-size: 13px; }
 .root.font-medium { -fx-font-size: 15px; }

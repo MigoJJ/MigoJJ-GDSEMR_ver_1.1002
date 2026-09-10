@@ -39,7 +39,8 @@ public class IAMTextArea {
 
     public enum Theme {
         SUNSET,
-        GRADIENT
+        GRADIENT,
+        BUFFET
     }
 
     // ================================ 
@@ -80,7 +81,7 @@ public class IAMTextArea {
             BASE_TEXT_TWEAKS;
 
     // Style for hovered text areas (tropical lagoon teals)
-    private static final String STYLE_HOVER = 
+    private static final String STYLE_HOVER =
             "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #CFE9DF, #A7D8C6, #7FC6B3);" +
             "-fx-text-fill: text-color;" +
             "-fx-border-color: #2C8C7A;" +
@@ -89,6 +90,50 @@ public class IAMTextArea {
             "-fx-background-radius: 9;" +
             "-fx-border-radius: 9;" +
             "-fx-effect: dropshadow(gaussian, rgba(44,140,122,0.40), 10, 0.25, 0, 1);" +
+            BASE_TEXT_TWEAKS;
+
+    // Bernard Buffet theme: stark black contours, raw canvas greys, hard square
+    // edges (no rounded corners), a single muted blood-red accent on focus —
+    // his angular, austere expressionist palette instead of a soft gradient.
+    private static final String BUFFET_FONT =
+            "-fx-font-family: 'Georgia', 'Times New Roman', serif;" +
+            "-fx-font-weight: bold;" +
+            "-fx-font-style: normal;";
+
+    private static final String STYLE_BUFFET_UNFOCUSED =
+            "-fx-background-color: #D9D6CF;" +
+            "-fx-text-fill: #111111;" +
+            "-fx-border-color: #000000;" +
+            "-fx-border-width: 2;" +
+            "-fx-background-insets: 0;" +
+            "-fx-background-radius: 0;" +
+            "-fx-border-radius: 0;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 0, 1.0, 3, 3);" +
+            BUFFET_FONT +
+            BASE_TEXT_TWEAKS;
+
+    private static final String STYLE_BUFFET_FOCUSED =
+            "-fx-background-color: #EFEDE7;" +
+            "-fx-text-fill: #000000;" +
+            "-fx-border-color: #7A1F1F;" +
+            "-fx-border-width: 3;" +
+            "-fx-background-insets: 0;" +
+            "-fx-background-radius: 0;" +
+            "-fx-border-radius: 0;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 0, 1.0, 4, 4);" +
+            BUFFET_FONT +
+            BASE_TEXT_TWEAKS;
+
+    private static final String STYLE_BUFFET_HOVER =
+            "-fx-background-color: #C9C6BE;" +
+            "-fx-text-fill: #111111;" +
+            "-fx-border-color: #000000;" +
+            "-fx-border-width: 2.5;" +
+            "-fx-background-insets: 0;" +
+            "-fx-background-radius: 0;" +
+            "-fx-border-radius: 0;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 0, 1.0, 3, 3);" +
+            BUFFET_FONT +
             BASE_TEXT_TWEAKS;
 
     // ================================ 
@@ -190,6 +235,8 @@ public class IAMTextArea {
         for (int i = 0; i < count; i++) {
             if (theme == Theme.GRADIENT) {
                 styleSets.add(buildGradientStyleSet(i));
+            } else if (theme == Theme.BUFFET) {
+                styleSets.add(buildBuffetStyleSet());
             } else {
                 styleSets.add(buildSunsetStyleSet());
             }
@@ -206,6 +253,10 @@ public class IAMTextArea {
 
     private TextAreaStyleSet buildSunsetStyleSet() {
         return new TextAreaStyleSet(STYLE_UNFOCUSED, STYLE_FOCUSED, STYLE_HOVER);
+    }
+
+    private TextAreaStyleSet buildBuffetStyleSet() {
+        return new TextAreaStyleSet(STYLE_BUFFET_UNFOCUSED, STYLE_BUFFET_FOCUSED, STYLE_BUFFET_HOVER);
     }
 
     private TextAreaStyleSet buildGradientStyleSet(int index) {
