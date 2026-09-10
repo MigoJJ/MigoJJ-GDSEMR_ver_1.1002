@@ -1,5 +1,6 @@
 package com.emr.gds.repository.sqlite;
 
+import com.emr.gds.core.db.DbPaths;
 import com.emr.gds.domain.PlanHistoryEntry;
 import com.emr.gds.repository.PlanHistoryRepository;
 import java.nio.file.Files;
@@ -18,7 +19,7 @@ public class SqlitePlanHistoryRepository implements PlanHistoryRepository {
     private final Path dbFile;
 
     public SqlitePlanHistoryRepository() {
-        this(SqliteDatabasePaths.resolveDbPath("plan_history.db"));
+        this(DbPaths.resolveDbPath("plan_history.db"));
     }
 
     public SqlitePlanHistoryRepository(Path dbFile) {

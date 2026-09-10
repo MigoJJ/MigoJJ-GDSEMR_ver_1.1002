@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * A manager class for handling all database operations for KCD records.
  */
-public class DatabaseManager {
+public class KcdDatabaseManager {
     private static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(KCDDatabaseManagerJavaFX.JDBC_URL);
     }

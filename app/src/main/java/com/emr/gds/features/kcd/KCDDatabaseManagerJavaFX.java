@@ -1,7 +1,7 @@
 package com.emr.gds.features.kcd;
 
 import com.emr.gds.input.IAIMain;
-import com.emr.gds.features.kcd.db.DatabaseManager;
+import com.emr.gds.features.kcd.db.KcdDatabaseManager;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -177,7 +177,7 @@ public class KCDDatabaseManagerJavaFX {
             @Override
             protected List<KCDRecord> call() throws Exception {
                 updateStatus("Loading data...");
-                return DatabaseManager.getAllRecords();
+                return KcdDatabaseManager.getAllRecords();
             }
         };
         task.setOnSucceeded(e -> {
@@ -204,9 +204,9 @@ public class KCDDatabaseManagerJavaFX {
         result.ifPresent(record -> {
             try {
                 if (isUpdate) {
-                    DatabaseManager.updateRecord(recordToEdit.getDiseaseCode(), record);
+                    KcdDatabaseManager.updateRecord(recordToEdit.getDiseaseCode(), record);
                 } else {
-                    DatabaseManager.addRecord(record);
+                    KcdDatabaseManager.addRecord(record);
                 }
                 loadInitialData();
             } catch (SQLException e) {
@@ -224,7 +224,7 @@ public class KCDDatabaseManagerJavaFX {
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    DatabaseManager.deleteRecord(selectedRecord.getDiseaseCode());
+                    KcdDatabaseManager.deleteRecord(selectedRecord.getDiseaseCode());
                     loadInitialData();
                 } catch (SQLException e) {
                     showErrorDialog("Database Error", "Could not delete record: " + e.getMessage());

@@ -1,5 +1,6 @@
-package com.emr.gds.features.thyroid;
+package com.emr.gds.features.thyroid.adapter.in.ui;
 
+import com.emr.gds.features.thyroid.domain.ThyroidEntry;
 import com.emr.gds.util.StageSizing;
 import javafx.scene.Scene;
 import javafx.stage.Stage;

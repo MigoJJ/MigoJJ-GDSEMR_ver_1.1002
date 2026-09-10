@@ -1,5 +1,7 @@
 package com.emr.gds;
 
+import com.emr.gds.core.auth.CredentialRepository;
+import com.emr.gds.core.auth.SqliteCredentialRepository;
 import com.emr.gds.core.db.AppDatabaseManager;
 import com.emr.gds.repository.sqlite.SqliteAbbreviationRepository;
 import com.emr.gds.repository.sqlite.SqlitePlanHistoryRepository;
@@ -54,7 +56,7 @@ import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 
 import com.emr.gds.features.medication.MedicationCategory;
-import com.emr.gds.features.thyroid.ThyroidLauncher;
+import com.emr.gds.features.thyroid.adapter.in.ui.ThyroidLauncher;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -103,6 +105,7 @@ public class IttiaApp extends Application {
             new ProblemListService(new SqliteProblemRepository());
     private final PlanHistoryService planHistoryService =
             new PlanHistoryService(new SqlitePlanHistoryRepository());
+    private final CredentialRepository credentialRepository = new SqliteCredentialRepository();
     private IAIFreqFrame freqStage; // Manages the vital signs window
     private IAMFunctionkey functionKeyHandler;
     private Stage mainStage;
@@ -143,6 +146,8 @@ public class IttiaApp extends Application {
     }
 
     private Scene buildLoginScene() {
+        boolean setupMode = !credentialRepository.hasCredential();
+
         BorderPane shell = new BorderPane();
         shell.setPadding(new Insets(40, 32, 40, 32));
         shell.setStyle("-fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);");
@@ -156,10 +161,12 @@ public class IttiaApp extends Application {
         Label badge = new Label("GDSEMR");
         badge.setStyle("-fx-text-fill: #a5b4fc; -fx-font-size: 13px; -fx-font-weight: bold;");
 
-        Label title = new Label("Sign in to continue");
+        Label title = new Label(setupMode ? "Create a password" : "Sign in to continue");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
 
-        Label subtitle = new Label("Secure access to the EMR workspace.");
+        Label subtitle = new Label(setupMode
+                ? "No password is set yet. Choose one to secure this EMR workspace."
+                : "Secure access to the EMR workspace.");
         subtitle.setStyle("-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 14px;");
 
         TextField usernameField = new TextField();
@@ -168,11 +175,16 @@ public class IttiaApp extends Application {
         usernameField.setStyle("-fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.55);");
 
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
+        passwordField.setPromptText(setupMode ? "New password (min 6 characters)" : "Password");
         passwordField.setPrefWidth(360);
         passwordField.setStyle("-fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.55);");
 
-        Button loginButton = new Button("Sign In");
+        PasswordField confirmPasswordField = new PasswordField();
+        confirmPasswordField.setPromptText("Confirm password");
+        confirmPasswordField.setPrefWidth(360);
+        confirmPasswordField.setStyle("-fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.55);");
+
+        Button loginButton = new Button(setupMode ? "Create Password" : "Sign In");
         loginButton.setDefaultButton(true);
         loginButton.setPrefWidth(160);
         loginButton.setStyle("-fx-background-radius: 12; -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: linear-gradient(to right, #4f46e5, #06b6d4);");
@@ -180,14 +192,25 @@ public class IttiaApp extends Application {
         Label statusLabel = new Label();
         statusLabel.setStyle("-fx-text-fill: #facc15; -fx-font-size: 12px;");
 
-        loginButton.setOnAction(e -> handleLogin(usernameField, passwordField, statusLabel, loginButton));
-        passwordField.setOnAction(e -> handleLogin(usernameField, passwordField, statusLabel, loginButton));
+        PasswordField effectiveConfirmField = setupMode ? confirmPasswordField : null;
+        loginButton.setOnAction(e -> handleLogin(usernameField, passwordField, effectiveConfirmField, setupMode, statusLabel, loginButton));
+        passwordField.setOnAction(e -> handleLogin(usernameField, passwordField, effectiveConfirmField, setupMode, statusLabel, loginButton));
+        confirmPasswordField.setOnAction(e -> handleLogin(usernameField, passwordField, effectiveConfirmField, setupMode, statusLabel, loginButton));
 
         VBox buttonRow = new VBox(loginButton);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
         buttonRow.setPadding(new Insets(8, 0, 0, 0));
 
-        card.getChildren().addAll(badge, title, subtitle, usernameField, passwordField, buttonRow, statusLabel);
+        card.getChildren().add(badge);
+        card.getChildren().add(title);
+        card.getChildren().add(subtitle);
+        card.getChildren().add(usernameField);
+        card.getChildren().add(passwordField);
+        if (setupMode) {
+            card.getChildren().add(confirmPasswordField);
+        }
+        card.getChildren().add(buttonRow);
+        card.getChildren().add(statusLabel);
 
         StackPane center = new StackPane(card);
         center.setAlignment(Pos.CENTER);
@@ -196,19 +219,45 @@ public class IttiaApp extends Application {
         return new Scene(shell, 900, 600);
     }
 
-    private void handleLogin(TextField usernameField, PasswordField passwordField, Label statusLabel, Button loginButton) {
+    private void handleLogin(TextField usernameField, PasswordField passwordField, PasswordField confirmPasswordField,
+                              boolean setupMode, Label statusLabel, Button loginButton) {
         String username = usernameField.getText().trim();
-        String password = passwordField.getText();
+        char[] password = passwordField.getText().toCharArray();
 
-        if (username.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || password.length == 0) {
             statusLabel.setText("Enter both username and password.");
             return;
         }
+
+        if (setupMode) {
+            if (password.length < 6) {
+                statusLabel.setText("Password must be at least 6 characters.");
+                return;
+            }
+            char[] confirm = confirmPasswordField.getText().toCharArray();
+            if (!java.util.Arrays.equals(password, confirm)) {
+                statusLabel.setText("Passwords do not match.");
+                java.util.Arrays.fill(confirm, '\0');
+                return;
+            }
+            java.util.Arrays.fill(confirm, '\0');
+            credentialRepository.setPassword(password);
+        } else {
+            if (!credentialRepository.verifyPassword(password)) {
+                statusLabel.setText("Invalid password.");
+                java.util.Arrays.fill(password, '\0');
+                return;
+            }
+        }
+        java.util.Arrays.fill(password, '\0');
 
         statusLabel.setText("Signing in & loading data...");
         loginButton.setDisable(true);
         usernameField.setDisable(true);
         passwordField.setDisable(true);
+        if (confirmPasswordField != null) {
+            confirmPasswordField.setDisable(true);
+        }
 
         // Load data asynchronously
         javafx.concurrent.Task<Map<String, String>> loadTask = new javafx.concurrent.Task<>() {
@@ -227,6 +276,9 @@ public class IttiaApp extends Application {
             loginButton.setDisable(false);
             usernameField.setDisable(false);
             passwordField.setDisable(false);
+            if (confirmPasswordField != null) {
+                confirmPasswordField.setDisable(false);
+            }
             loadTask.getException().printStackTrace();
         });
 

@@ -2,7 +2,6 @@ package com.emr.gds.core.db;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,6 +18,7 @@ public class AppDatabaseManager {
     private Connection abbreviationConnection;
     private Connection historyConnection;
     private Connection referenceConnection;
+    private Connection authConnection;
 
     private AppDatabaseManager() {
         // singleton
@@ -58,13 +58,24 @@ public class AppDatabaseManager {
         return referenceConnection;
     }
 
+    /**
+     * Returns a shared connection to the local auth database (the single
+     * application password's hash).
+     */
+    public synchronized Connection getAuthConnection() throws SQLException {
+        if (authConnection == null || authConnection.isClosed()) {
+            authConnection = openConnection("auth.db");
+        }
+        return authConnection;
+    }
+
     private Connection openConnection(String dbFileName) throws SQLException {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             throw new SQLException("SQLite driver not found", e);
         }
-        Path dbPath = resolveDbPath(dbFileName);
+        Path dbPath = DbPaths.resolveDbPath(dbFileName);
         try {
             Files.createDirectories(dbPath.getParent());
         } catch (Exception e) {
@@ -72,17 +83,6 @@ public class AppDatabaseManager {
         }
         String url = "jdbc:sqlite:" + dbPath.toAbsolutePath();
         return DriverManager.getConnection(url);
-    }
-
-    private Path resolveDbPath(String dbFileName) {
-        Path p = Paths.get("").toAbsolutePath();
-        while (p != null && !Files.exists(p.resolve("gradlew")) && !Files.exists(p.resolve(".git"))) {
-            p = p.getParent();
-        }
-        if (p == null) {
-            p = Paths.get("").toAbsolutePath();
-        }
-        return p.resolve("app").resolve("db").resolve(dbFileName);
     }
 
     /**
@@ -95,6 +95,8 @@ public class AppDatabaseManager {
         historyConnection = null;
         closeQuietly(referenceConnection);
         referenceConnection = null;
+        closeQuietly(authConnection);
+        authConnection = null;
     }
 
     private void closeQuietly(Connection conn) {

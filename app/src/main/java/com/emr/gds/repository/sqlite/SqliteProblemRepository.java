@@ -1,5 +1,6 @@
 package com.emr.gds.repository.sqlite;
 
+import com.emr.gds.core.db.DbPaths;
 import com.emr.gds.repository.ProblemRepository;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +21,7 @@ public class SqliteProblemRepository implements ProblemRepository {
     private final Path dbFile;
 
     public SqliteProblemRepository() {
-        this(SqliteDatabasePaths.resolveDbPath("prolist.db"));
+        this(DbPaths.resolveDbPath("prolist.db"));
     }
 
     public SqliteProblemRepository(Path dbFile) {

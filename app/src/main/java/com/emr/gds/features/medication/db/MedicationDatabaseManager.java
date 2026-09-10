@@ -1,16 +1,14 @@
 package com.emr.gds.features.medication.db;
 
+import com.emr.gds.core.db.DbPaths;
 import com.emr.gds.features.medication.model.MedicationGroup;
 import com.emr.gds.features.medication.model.MedicationItem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class DatabaseManager {
-    private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
+public class MedicationDatabaseManager {
+    private static final Logger LOGGER = Logger.getLogger(MedicationDatabaseManager.class.getName());
     private static final String DEFAULT_DB_FILENAME = "med_data.db";
     private final String dbFileName;
     
@@ -18,36 +16,17 @@ public class DatabaseManager {
     private Map<String, List<MedicationGroup>> cachedData = null;
     private List<String> cachedCategories = null;
 
-    public DatabaseManager() {
+    public MedicationDatabaseManager() {
         this(DEFAULT_DB_FILENAME);
     }
 
-    public DatabaseManager(String dbFileName) {
+    public MedicationDatabaseManager(String dbFileName) {
         this.dbFileName = dbFileName;
         initializeDatabase();
     }
 
-    private Path getDbPath() {
-        // Logic to find the app/db directory relative to project root
-        Path p = Paths.get("").toAbsolutePath();
-        while (p != null && !Files.exists(p.resolve("gradlew"))) {
-            p = p.getParent();
-        }
-        
-        if (p != null) {
-            Path appDb = p.resolve("app/db").resolve(dbFileName);
-            if (Files.exists(appDb)) return appDb;
-            
-            Path localDb = p.resolve("db").resolve(dbFileName);
-            if (Files.exists(localDb)) return localDb;
-
-            return appDb; // Default to app/db
-        }
-        return Paths.get("app/db").resolve(dbFileName);
-    }
-    
     private String getConnectionString() {
-        return "jdbc:sqlite:" + getDbPath().toAbsolutePath().toString();
+        return DbPaths.jdbcUrl(dbFileName);
     }
 
     private void initializeDatabase() {

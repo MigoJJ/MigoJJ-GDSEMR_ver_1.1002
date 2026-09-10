@@ -1,6 +1,6 @@
 package com.emr.gds.features.medication.controller;
 
-import com.emr.gds.features.medication.db.DatabaseManager;
+import com.emr.gds.features.medication.db.MedicationDatabaseManager;
 import com.emr.gds.util.StageSizing;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,7 +17,7 @@ public class LauncherController {
 
     @FXML private VBox categoryContainer;
 
-    private final DatabaseManager dbManager = new DatabaseManager();
+    private final MedicationDatabaseManager dbManager = new MedicationDatabaseManager();
 
     @FXML
     public void initialize() {

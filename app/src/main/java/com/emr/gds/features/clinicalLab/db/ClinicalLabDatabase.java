@@ -1,29 +1,17 @@
 package com.emr.gds.features.clinicalLab.db;
 
+import com.emr.gds.core.db.DbPaths;
 import com.emr.gds.features.clinicalLab.model.ClinicalLabItem;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.File;
 
 public class ClinicalLabDatabase {
-    
-    private String getDbUrl() {
-        String[] possiblePaths = {
-            "app/db/ClinicalLabItemsSqlite3.db",
-            "db/ClinicalLabItemsSqlite3.db",
-            "../app/db/ClinicalLabItemsSqlite3.db"
-        };
 
-        for (String path : possiblePaths) {
-            File file = new File(path);
-            if (file.exists()) {
-                // System.out.println("ClinicalLabDatabase: DB found at " + file.getAbsolutePath());
-                return "jdbc:sqlite:" + file.getAbsolutePath();
-            }
-        }
-        System.err.println("ClinicalLabDatabase: DB file not found! Defaulting to app/db/...");
-        return "jdbc:sqlite:app/db/ClinicalLabItemsSqlite3.db";
+    private static final String DB_FILE_NAME = "ClinicalLabItemsSqlite3.db";
+
+    private String getDbUrl() {
+        return DbPaths.jdbcUrl(DB_FILE_NAME);
     }
 
     public List<ClinicalLabItem> getAllItems() {

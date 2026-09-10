@@ -20,6 +20,9 @@ tasks.named<Test>("test") {
 }
 
 tasks.withType<JavaCompile> {
-    // Keep bytecode at Java 21 so Spring Boot's classpath scanning works on Gradle 9.
-    options.release.set(21)
+    // Matches the root Java 25 toolchain. Requires Spring Boot >= 3.5 — older
+    // Spring Framework ASM versions can't parse Java 25 class files during
+    // @SpringBootTest classpath scanning (BeanDefinitionStoreException: "Incompatible
+    // class format" / ClassFormatException from ASM).
+    options.release.set(25)
 }

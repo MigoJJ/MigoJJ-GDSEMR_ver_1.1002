@@ -8,8 +8,6 @@ val sqliteVersion: String by project
 val slf4jVersion: String by project
 
 dependencies {
-    implementation(project(":core"))
-
     implementation("org.xerial:sqlite-jdbc:$sqliteVersion")
     runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1") // Added for JSON parsing

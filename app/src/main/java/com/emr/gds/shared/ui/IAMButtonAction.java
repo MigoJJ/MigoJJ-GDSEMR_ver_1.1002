@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import com.emr.gds.features.kcd.db.DatabaseManager;
+import com.emr.gds.features.kcd.db.KcdDatabaseManager;
 import com.emr.gds.features.kcd.KCDDatabaseManagerJavaFX;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

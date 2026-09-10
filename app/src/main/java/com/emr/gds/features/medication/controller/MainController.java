@@ -1,6 +1,6 @@
 package com.emr.gds.features.medication.controller;
 
-import com.emr.gds.features.medication.db.DatabaseManager;
+import com.emr.gds.features.medication.db.MedicationDatabaseManager;
 import com.emr.gds.features.medication.model.MedicationItem;
 import com.emr.gds.features.medication.model.MedicationGroup;
 import com.emr.gds.util.StageSizing;
@@ -31,7 +31,7 @@ public class MainController {
     @FXML private Label selectionLabel;
     @FXML private Button btnEdit, btnDelete, btnSave;
 
-    private final DatabaseManager dbManager = new DatabaseManager();
+    private final MedicationDatabaseManager dbManager = new MedicationDatabaseManager();
     private final EmrBridgeService emrBridge = new EmrBridgeService();
 
     private MedicationItem activeItem;

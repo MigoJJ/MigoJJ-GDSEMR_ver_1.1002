@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DatabaseManagerTest {
+class MedicationDatabaseManagerTest {
 
     private static final String TEST_DB_FILE = "test_med_data.db";
 
@@ -32,7 +32,7 @@ class DatabaseManagerTest {
     @Test
     void testPersistence() {
         // 1. Initial Load with TEST file
-        DatabaseManager db1 = new DatabaseManager(TEST_DB_FILE);
+        MedicationDatabaseManager db1 = new MedicationDatabaseManager(TEST_DB_FILE);
         db1.createTables(); // Ensure tables exist
         
         // Seed Data since we don't load from XML anymore
@@ -60,7 +60,7 @@ class DatabaseManagerTest {
         assertFalse(db1.hasPendingChanges(), "Should not have pending changes after commit");
         
         // 4. Reload (Simulate App Restart)
-        DatabaseManager db2 = new DatabaseManager(TEST_DB_FILE);
+        MedicationDatabaseManager db2 = new MedicationDatabaseManager(TEST_DB_FILE);
         Map<String, List<MedicationGroup>> data2 = db2.getMedicationData();
         
         // 5. Verify
