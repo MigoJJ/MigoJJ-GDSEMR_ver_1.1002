@@ -96,7 +96,7 @@ public class IAMTextArea {
     // edges (no rounded corners), a single muted blood-red accent on focus —
     // his angular, austere expressionist palette instead of a soft gradient.
     private static final String BUFFET_FONT =
-            "-fx-font-family: 'Georgia', 'Times New Roman', serif;" +
+            "-fx-font-family: 'Consolas', monospace;" +
             "-fx-font-weight: bold;" +
             "-fx-font-style: normal;";
 
