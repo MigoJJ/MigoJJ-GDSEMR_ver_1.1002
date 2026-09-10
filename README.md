@@ -1,6 +1,3 @@
-Resume this session with:
-claude --resume bb99e5af-e269-4077-87d2-1b90e3e92539
-
 # GDSEMR_ver_1.1001
 
 JavaFX EMR prototype targeting Java 25 and JavaFX 25.
