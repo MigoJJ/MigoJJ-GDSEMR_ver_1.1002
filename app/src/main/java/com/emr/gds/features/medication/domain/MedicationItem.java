@@ -1,4 +1,4 @@
-package com.emr.gds.features.medication.model;
+package com.emr.gds.features.medication.domain;
 
 public class MedicationItem {
     private String text;

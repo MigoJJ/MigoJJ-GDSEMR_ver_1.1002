@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.emr.gds.features.medication.controller.MainController;
+import com.emr.gds.features.medication.adapter.in.ui.MainController;
 import com.emr.gds.features.thyroid.application.ThyroidSummaryService;
 import com.emr.gds.features.thyroid.domain.ThyroidEntry;
 import com.emr.gds.features.thyroid.domain.ThyroidRiskCalculator;

@@ -1,6 +1,6 @@
-package com.emr.gds.features.medication.controller;
+package com.emr.gds.features.medication.adapter.in.ui;
 
-import com.emr.gds.features.medication.db.MedicationDatabaseManager;
+import com.emr.gds.features.medication.adapter.out.persistence.MedicationDatabaseManager;
 import com.emr.gds.util.StageSizing;
 import javafx.application.Platform;
 import javafx.fxml.FXML;

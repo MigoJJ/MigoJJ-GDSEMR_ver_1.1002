@@ -1,8 +1,8 @@
-package com.emr.gds.features.medication.db;
+package com.emr.gds.features.medication.adapter.out.persistence;
 
 import com.emr.gds.core.db.DbPaths;
-import com.emr.gds.features.medication.model.MedicationGroup;
-import com.emr.gds.features.medication.model.MedicationItem;
+import com.emr.gds.features.medication.domain.MedicationGroup;
+import com.emr.gds.features.medication.domain.MedicationItem;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;

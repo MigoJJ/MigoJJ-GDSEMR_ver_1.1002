@@ -3,7 +3,7 @@ package com.emr.gds.shared.ui;
 import com.emr.gds.IttiaApp;
 import com.emr.gds.input.IAIMain;
 import com.emr.gds.input.IAITextAreaManager;
-import com.emr.gds.features.medication.controller.MainController;
+import com.emr.gds.features.medication.adapter.in.ui.MainController;
 import com.emr.gds.util.StageSizing;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

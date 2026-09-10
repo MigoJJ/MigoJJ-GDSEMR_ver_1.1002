@@ -1,4 +1,4 @@
-package com.emr.gds.features.medication;
+package com.emr.gds.features.medication.adapter.in.ui;
 
 import com.emr.gds.util.StageSizing;
 import javafx.application.Application;

@@ -1,8 +1,8 @@
-package com.emr.gds.features.medication.controller;
+package com.emr.gds.features.medication.adapter.in.ui;
 
-import com.emr.gds.features.medication.db.MedicationDatabaseManager;
-import com.emr.gds.features.medication.model.MedicationItem;
-import com.emr.gds.features.medication.model.MedicationGroup;
+import com.emr.gds.features.medication.adapter.out.persistence.MedicationDatabaseManager;
+import com.emr.gds.features.medication.domain.MedicationItem;
+import com.emr.gds.features.medication.domain.MedicationGroup;
 import com.emr.gds.util.StageSizing;
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 import javafx.application.Platform;

@@ -4,7 +4,7 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.emr.gds.features.medication.controller.LauncherController"
+      fx:controller="com.emr.gds.features.medication.adapter.in.ui.LauncherController"
       spacing="20" alignment="CENTER" style="-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); -fx-padding: 25;">
 
     <Label text="EMR Medication Helper" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-padding: 0 0 15 0;"/>

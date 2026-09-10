@@ -1,4 +1,4 @@
-package com.emr.gds.features.medication.model;
+package com.emr.gds.features.medication.domain;
 
 import java.util.List;
 

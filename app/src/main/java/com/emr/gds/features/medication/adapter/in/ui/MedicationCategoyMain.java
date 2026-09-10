@@ -1,4 +1,4 @@
-package com.emr.gds.features.medication;
+package com.emr.gds.features.medication.adapter.in.ui;
 
 public class MedicationCategoyMain {
     public static void main(String[] args) {

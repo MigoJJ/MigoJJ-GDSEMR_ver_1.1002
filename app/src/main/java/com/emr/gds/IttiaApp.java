@@ -55,7 +55,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 
-import com.emr.gds.features.medication.MedicationCategory;
+import com.emr.gds.features.medication.adapter.in.ui.MedicationCategory;
 import com.emr.gds.features.thyroid.adapter.in.ui.ThyroidLauncher;
 import java.io.File;
 import java.io.IOException;
