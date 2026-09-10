@@ -34,6 +34,7 @@ public class IAIFreqFrame extends Stage {
     private final TextField[] bmiInputs = new TextField[3];
     private final ToggleButton heightUnitToggle = new ToggleButton("cm");
     private final ToggleButton weightUnitToggle = new ToggleButton("kg");
+    private final ToggleButton waistUnitToggle = new ToggleButton("cm");
 
     // Unit conversion constants: only the metric->imperial direction is a
     // magic number; the reverse is always derived by division so the two
@@ -83,10 +84,10 @@ public class IAIFreqFrame extends Stage {
         bmiInputs[0] = new TextField();
         bmiInputs[1] = new TextField();
         bmiInputs[2] = new TextField();
-        bmiInputs[2].setPromptText("Waist (cm or inch)");
 
         configureUnitToggle(heightUnitToggle, bmiInputs[0], "Height", "cm", "in");
         configureUnitToggle(weightUnitToggle, bmiInputs[1], "Weight", "kg", "lb");
+        configureUnitToggle(waistUnitToggle, bmiInputs[2], "Waist", "cm", "in");
 
         for (int i = 0; i < bmiInputs.length; i++) {
             final int nextIndex = i + 1;
@@ -106,6 +107,7 @@ public class IAIFreqFrame extends Stage {
 
         grid.add(new Label("Waist:"), 0, 2);
         grid.add(bmiInputs[2], 1, 2);
+        grid.add(waistUnitToggle, 2, 2);
 
         Button saveButton = new Button("Save BMI");
         saveButton.setOnAction(e -> onSaveBMI());
@@ -142,7 +144,7 @@ public class IAIFreqFrame extends Stage {
 
             double bmi = weightKg / Math.pow(heightCm / 100.0, 2.0);
             String category = (bmi < 18.5) ? "Underweight" : (bmi < 25.0) ? "Healthy" : (bmi < 30.0) ? "Overweight" : "Obesity";
-            String waist = processWaist(bmiInputs[2].getText());
+            String waistDisplay = formatWaistDisplay(bmiInputs[2].getText(), waistUnitToggle.isSelected());
 
             String heightDisplay = heightIsInch
                     ? String.format("%.1f in (%.1f cm)", heightRaw, heightCm)
@@ -152,7 +154,7 @@ public class IAIFreqFrame extends Stage {
                     : String.format("%.1f kg", weightKg);
 
             String report = String.format("\n< BMI >\n%s : BMI: [ %.2f ] kg/m^2\nHeight : %s   Weight : %s%s",
-                    category, bmi, heightDisplay, weightDisplay, waist.isEmpty() ? "" : "   Waist: " + waist + " cm");
+                    category, bmi, heightDisplay, weightDisplay, waistDisplay == null ? "" : "   Waist: " + waistDisplay);
 
             IAIMain.getTextAreaManager().appendTextToSection(IAITextAreaManager.AREA_O, report + "\n");
             for (TextField field : bmiInputs) field.clear();
@@ -162,14 +164,20 @@ public class IAIFreqFrame extends Stage {
         }
     }
 
-    private String processWaist(String waistRaw) {
-        if (waistRaw == null || waistRaw.isBlank()) return "";
-        String w = waistRaw.trim().toLowerCase();
-        if (w.contains("i")) {
-            double inches = Double.parseDouble(w.replaceAll("[^\\d.]", ""));
-            return String.format("%.1f", inchToCm(inches));
+    /** Formats the waist measurement for the report, converting to cm when entered in inches. Returns null when blank/unparseable. */
+    private String formatWaistDisplay(String waistRaw, boolean isInch) {
+        if (waistRaw == null || waistRaw.isBlank()) return null;
+        String digits = waistRaw.trim().replaceAll("[^\\d.]", "");
+        if (digits.isEmpty()) return null;
+        try {
+            double value = Double.parseDouble(digits);
+            double cm = isInch ? inchToCm(value) : value;
+            return isInch
+                    ? String.format("%.1f in (%.1f cm)", value, cm)
+                    : String.format("%.1f cm", cm);
+        } catch (NumberFormatException ex) {
+            return null;
         }
-        return w.replaceAll("[^\\d.]", "");
     }
 
     private TitledPane createHba1cPane() {
