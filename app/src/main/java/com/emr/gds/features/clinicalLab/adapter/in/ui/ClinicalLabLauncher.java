@@ -1,4 +1,4 @@
-package com.emr.gds.features.clinicalLab;
+package com.emr.gds.features.clinicalLab.adapter.in.ui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

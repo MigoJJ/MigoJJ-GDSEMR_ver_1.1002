@@ -1,7 +1,8 @@
-package com.emr.gds.features.clinicalLab.controller;
+package com.emr.gds.features.clinicalLab.adapter.in.ui;
 
-import com.emr.gds.features.clinicalLab.db.ClinicalLabDatabase;
-import com.emr.gds.features.clinicalLab.model.ClinicalLabItem;
+import com.emr.gds.features.clinicalLab.adapter.out.persistence.JdbcClinicalLabRepository;
+import com.emr.gds.features.clinicalLab.domain.ClinicalLabItem;
+import com.emr.gds.features.clinicalLab.domain.ClinicalLabRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -51,7 +52,7 @@ public class ClinicalLabController implements Initializable {
     @FXML private Button cancelButton;
 
 
-    private final ClinicalLabDatabase database = new ClinicalLabDatabase();
+    private final ClinicalLabRepository database = new JdbcClinicalLabRepository();
     private final ObservableList<ClinicalLabItem> masterData = FXCollections.observableArrayList();
     private final ObservableList<String> selectedItems = FXCollections.observableArrayList();
 
@@ -124,7 +125,7 @@ public class ClinicalLabController implements Initializable {
         String fHigh = item.getFemaleRangeHigh() != null ? String.valueOf(item.getFemaleRangeHigh()) : "-";
         lblFemaleRange.setText(fLow + " - " + fHigh);
         lblFemaleRef.setText(item.getFemaleReferenceRange() != null ? item.getFemaleReferenceRange() : "");
-        
+
         editCodes.setText(item.getCodes() != null ? item.getCodes() : "-");
         editComments.setText(item.getComments() != null ? item.getComments() : "-");
     }

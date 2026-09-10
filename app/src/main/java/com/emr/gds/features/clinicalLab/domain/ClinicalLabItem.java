@@ -1,4 +1,4 @@
-package com.emr.gds.features.clinicalLab.model;
+package com.emr.gds.features.clinicalLab.domain;
 
 public class ClinicalLabItem {
     private int id;

@@ -489,7 +489,7 @@ public class IttiaApp extends Application {
 
             Button labCodeButton = new Button("LabCode");
             labCodeButton.getStyleClass().add("button-accent");
-            labCodeButton.setOnAction(e -> com.emr.gds.features.clinicalLab.ClinicalLabLauncher.open());
+            labCodeButton.setOnAction(e -> com.emr.gds.features.clinicalLab.adapter.in.ui.ClinicalLabLauncher.open());
             
             bottomBar.getItems().add(new Separator());
             bottomBar.getItems().add(categoryButton);

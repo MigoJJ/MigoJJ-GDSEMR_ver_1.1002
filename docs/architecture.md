@@ -31,9 +31,9 @@ Two styles coexist:
 1. **Flat** (most features): UI, domain logic, and persistence mixed
    together in a handful of large classes. This is the legacy style and
    still the majority of the codebase.
-2. **Layered** (`features/history`, `features/thyroid`, `features/medication`):
-   split into sub-packages by responsibility, following a light hexagonal
-   (ports-and-adapters) convention:
+2. **Layered** (`features/history`, `features/thyroid`, `features/medication`,
+   `features/clinicalLab`): split into sub-packages by responsibility,
+   following a light hexagonal (ports-and-adapters) convention:
    - `domain/` — plain Java, no JavaFX and no JDBC. Entities, enums,
      calculators, repository *interfaces*.
    - `application/` — orchestration and business logic that depends only
@@ -47,15 +47,19 @@ Two styles coexist:
      on `domain/` and `application/`, never the reverse.
    - `adapter/out/persistence/` — persistence code, only present for
      features with real data to store. `features/history` implements this
-     properly behind a `domain/HistoryRepository` interface; `features/medication`
-     just moved its existing concrete `MedicationDatabaseManager` here
-     without extracting an interface, since it already mixes persistence
-     with in-memory caching/pending-changes state that doesn't map cleanly
-     onto a generic repository contract — forcing one in wasn't worth it
-     for a package move. Prefer the interface-backed style
-     (`history`'s) for new persisted features; don't feel obligated to
-     retrofit one onto `medication` unless you're touching its persistence
-     logic anyway.
+     properly behind a `domain/HistoryRepository` interface;
+     `features/clinicalLab` follows the same interface-backed style
+     (`domain/ClinicalLabRepository` / `adapter/out/persistence/JdbcClinicalLabRepository`),
+     since its existing `ClinicalLabDatabase` was already plain stateless
+     CRUD with no extra in-memory state, so extracting an interface was a
+     clean fit. `features/medication` just moved its existing concrete
+     `MedicationDatabaseManager` here without extracting an interface,
+     since it already mixes persistence with in-memory caching/pending-changes
+     state that doesn't map cleanly onto a generic repository contract —
+     forcing one in wasn't worth it for a package move. Prefer the
+     interface-backed style (`history`'s, `clinicalLab`'s) for new persisted
+     features; don't feel obligated to retrofit one onto `medication` unless
+     you're touching its persistence logic anyway.
 
 **When adding a new feature or substantially touching an existing flat one,
 prefer the layered structure.** `features/history` is the reference example
@@ -64,16 +68,19 @@ for a persisted feature with a clean repository interface;
 with no persistence (see its `application/ThyroidSummaryService`, extracted
 from a 1149-line UI class that had report-generation logic embedded in
 it); `features/medication` is the reference example for a persisted
-feature with FXML-based controllers (note: moving FXML controllers means
-also updating the `fx:controller` attribute in the corresponding `.fxml`
-resource file — this is a runtime-only failure if missed, `./gradlew
-compileJava` won't catch it).
+feature with FXML-based controllers whose persistence class wasn't worth
+splitting behind an interface; `features/clinicalLab` is the reference
+example for a persisted, FXML-based feature whose persistence class *was*
+a clean fit for a repository interface (note: moving FXML controllers
+means also updating the `fx:controller` attribute in the corresponding
+`.fxml` resource file — this is a runtime-only failure if missed,
+`./gradlew compileJava` won't catch it).
 
 Migrating the remaining flat features is intentionally incremental — it was
-scoped as one feature at a time (thyroid, then medication) rather than an
-all-at-once rewrite, since it touches working clinical UI with no automated
-UI test suite. Do it feature-by-feature, verifying the actual running UI
-after each move (see "Verifying UI changes" below).
+scoped as one feature at a time (thyroid, then medication, then clinicalLab)
+rather than an all-at-once rewrite, since it touches working clinical UI
+with no automated UI test suite. Do it feature-by-feature, verifying the
+actual running UI after each move (see "Verifying UI changes" below).
 
 ## Persistence
 
@@ -125,17 +132,37 @@ singleton row — don't bolt a second parallel auth path on top.
 
 ## Verifying UI changes
 
-This app has no automated UI test suite. When changing JavaFX code, `./gradlew test` passing does not mean the UI works. Phases 3, 4, and 6 verified
-changes by temporarily pointing `application.mainClass` (in
-`app/build.gradle.kts`) at a throwaway harness `Application` that calls the
-real, unmodified entry point directly (e.g. `new IttiaApp().start(new
-Stage())`, `ThyroidLauncher.openThyroidEmr()`, or `new
-MedicationCategory().start(stage)`) and drives real controls via
+As of Phase 8, `app` has a small automated UI test suite using TestFX
+(`org.testfx:testfx-core` / `testfx-junit5`, see `app/build.gradle.kts`).
+`./gradlew test` passing now does mean *something* about the UI works for
+covered features — but coverage is still thin (only `features/clinicalLab`
+has a TestFX test as of Phase 8; see
+`ClinicalLabControllerUiTest`/`JdbcClinicalLabRepositoryTest`), so for
+features without one, `./gradlew test` passing still does not mean the UI
+works. Phases 3, 4, and 6 verified changes by temporarily pointing
+`application.mainClass` (in `app/build.gradle.kts`) at a throwaway harness
+`Application` that calls the real, unmodified entry point directly (e.g.
+`new IttiaApp().start(new Stage())`, `ThyroidLauncher.openThyroidEmr()`, or
+`new MedicationCategory().start(stage)`) and drives real controls via
 `Button.fire()` / `TextField.setText()` against the real rendered scene
-graph, then reverts the `mainClass` change and deletes the harness. This
-is a real, disclosed workaround for the lack of `xdotool`/TestFX in this
-environment — reach for it (or a proper TestFX dependency, if that's ever
-added) rather than skipping runtime verification for UI changes.
+graph, then reverts the `mainClass` change and deletes the harness. Prefer
+a real TestFX test over this manual harness for new/touched features going
+forward — write it once, keep it, instead of a throwaway per phase — but
+the harness technique is still fair game for a one-off spot-check.
+
+**TestFX's OS-level synthetic input is unreliable in this dev environment.**
+`FxRobot.clickOn(...)`/`.write(...)`/`.type(...)` go through the
+xdg-desktop-portal RemoteDesktop interface for pointer/keyboard injection,
+which this environment's session denies ("Session is not allowed to call
+NotifyPointer methods"). This surfaced in Phase 8 as an intermittent
+`NoSuchElementException` from TestFX's `WindowFinder` when the UI test ran
+alongside other test classes — flaky, not a real bug. **Use
+`FxRobot.interact(Runnable)` instead**: it runs directly on the FX
+Application Thread (e.g. `robot.interact(() -> { field.setText("x");
+field.getOnAction().handle(new ActionEvent()); })`), which exercises the
+real control and its real event handler without going through OS-level
+input injection at all. `interact` is the way to get a real TestFX test
+working reliably in this environment despite the portal restriction.
 
 Two gotchas hit while doing this:
 - **FXML `fx:controller` mismatches are a runtime-only failure.** Moving an

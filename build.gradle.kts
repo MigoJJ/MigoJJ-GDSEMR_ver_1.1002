@@ -6,7 +6,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
-val javaVersion: String by project
+val javaVersion = project.property("javaVersion") as String
 
 allprojects {
     repositories {

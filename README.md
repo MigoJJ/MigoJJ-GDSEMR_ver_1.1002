@@ -1,3 +1,6 @@
+Resume this session with:
+claude --resume bb99e5af-e269-4077-87d2-1b90e3e92539
+
 # GDSEMR_ver_1.1001
 
 JavaFX EMR prototype targeting Java 25 and JavaFX 25.
@@ -92,3 +95,118 @@ Restructured `features/medication` (749 lines across 7 files) into the hexagonal
 Verified by driving the real `MedicationCategory` launcher end-to-end: real launcher buttons rendered from real DB categories, firing a real category button navigated through the real `LauncherController`/`MainController`/FXML wiring, and real medication items (queried independently via `sqlite3` to confirm ground truth) rendered correctly. The first verification pass falsely reported 0 items due to a scene-graph-traversal gotcha (see `docs/architecture.md` § Verifying UI changes) — caught and fixed before reporting a false pass.
 
 Deferred: migrating the remaining ~12 flat feature packages.
+
+### 2026-09-10 — Phase 7 (clinicalLab feature restructure, third pilot)
+Restructured `features/clinicalLab` (617 lines across 4 files, already
+loosely split into `controller/`/`db/`/`model/` sub-packages) into the
+hexagonal layering, chosen as the third pilot specifically because — unlike
+medication — its existing `ClinicalLabDatabase` was plain stateless CRUD
+with no in-memory caching, making it a clean fit for a repository
+*interface* (the style `features/history` uses, that `medication`
+deliberately skipped):
+- **`domain/`**: `ClinicalLabItem` (moved as-is, pure data) plus a new
+  `ClinicalLabRepository` interface (`getAllItems`/`searchItems`/`insertItem`/
+  `updateItem`/`deleteItem`), extracted from the concrete `ClinicalLabDatabase`.
+- **`adapter/out/persistence/JdbcClinicalLabRepository`**: the old
+  `ClinicalLabDatabase` moved and renamed to implement the new interface;
+  logic unchanged (still uses `DbPaths` for the `ClinicalLabItemsSqlite3.db`
+  path).
+- **`adapter/in/ui/`**: `ClinicalLabController` (FXML controller, now
+  depends on the `ClinicalLabRepository` interface rather than the concrete
+  class) and `ClinicalLabLauncher`, both moved as-is otherwise. No
+  `application/` layer — no meaty pure-function logic embedded in the
+  controller worth extracting.
+- Updated the `fx:controller` attribute in `main.fxml` and the one external
+  call site (`IttiaApp`) to match the new package.
+
+Verified by driving the real FXML-loaded scene end-to-end (row count off
+the real `ClinicalLabItemsSqlite3.db`, live substring search, clearing the
+search), then separately exercising the new `JdbcClinicalLabRepository`
+directly with an insert → search → update → delete round trip against the
+real database to confirm the persistence adapter works standalone from the
+UI. The verification run's insert/delete probe transiently touched the
+tracked `app/db/ClinicalLabItemsSqlite3.db` binary (SQLite rewrites pages
+even when the net row content is unchanged) — reverted via `git checkout`
+before committing so the tracked seed data is untouched.
+
+Deferred: migrating the remaining ~11 flat feature packages
+(`allergy`, `bone`, `ekg`, `glp1`, `gout`, `imaging`, `kcd`,
+`review_of_systems`, `template`, `vaccine`).
+
+### 2026-09-10 — Phase 8 (dependency/toolchain upgrades + automated UI testing)
+
+**Dependency and toolchain bumps**, each verified with a clean, non-cached
+`./gradlew clean compileJava compileTestJava test`:
+- Gradle wrapper **9.3.0 → 9.7.1** (`./gradlew wrapper --gradle-version 9.7.1`).
+- JavaFX **25.0.1 → 25.0.4**, SQLite JDBC **3.46.0.0 → 3.53.4.0**, SLF4J
+  **2.0.17 → 2.0.19** (`gradle.properties` / `gradle/libs.versions.toml`).
+- `jackson-databind` **2.16.1 → 2.22.2**, `junit-jupiter` **5.10.0 → 5.14.4**
+  (both hardcoded in `app/build.gradle.kts`). Deliberately stayed on the
+  JUnit 5 line rather than jumping to JUnit 6 (already released) — no
+  pressing reason to take on a major-version migration risk in the same
+  pass as everything else here.
+- Removed the unused `commons-text` entry from `gradle/libs.versions.toml`
+  — declared in the catalog but never actually depended on by any build
+  file (same category of dead config as Phase 1's `springBootVersion`).
+- Fixed a Gradle-9.6+ deprecation (`val name: Type by project` delegate
+  syntax, "scheduled to be removed in Gradle 10") in both `build.gradle.kts`
+  and `app/build.gradle.kts`, surfaced by the wrapper bump. Switched to
+  `project.property("name") as String`.
+- **Found and fixed a latent compile-time bug the sqlite-jdbc bump exposed**:
+  several files (`ErrorHandler`, `AutoSaveManager`, `ReferenceController`,
+  `SqliteReferenceRepository`) import `org.slf4j.Logger`/`LoggerFactory`
+  directly, but the build only ever declared `slf4j-simple` as
+  `runtimeOnly` — it compiled *by accident* because `sqlite-jdbc:3.46.0.0`
+  happened to transitively pull in `slf4j-api:1.7.36` on the compile
+  classpath. `sqlite-jdbc:3.53.4.0` no longer does. Fixed properly by
+  adding `implementation("org.slf4j:slf4j-api:$slf4jVersion")` explicitly
+  rather than working around it. This is exactly the kind of gap a build
+  cache can hide indefinitely: `./gradlew compileJava` alone reported
+  `UP-TO-DATE`/`FROM-CACHE` and never re-ran javac against the real
+  dependency graph — only `--no-build-cache` (or the version bump
+  invalidating the cache key) forced a real compile that caught it.
+
+**Automated UI testing**, via TestFX (`org.testfx:testfx-core` /
+`testfx-junit5:4.0.18`, plus `org.hamcrest:hamcrest:3.0` which TestFX's API
+needs on the compile classpath):
+- Added `ClinicalLabControllerUiTest` (loads the real `main.fxml`, asserts
+  real seed data renders, exercises the real search handler) and
+  `JdbcClinicalLabRepositoryTest` (insert → search → update → delete round
+  trip against an isolated `test_clinical_lab_items.db`, following
+  `MedicationDatabaseManagerTest`'s existing convention of never touching
+  the tracked seed `.db` files).
+- To make the repository test possible at all, gave
+  `JdbcClinicalLabRepository` a constructor overload accepting a db file
+  name (defaulting to the real `ClinicalLabItemsSqlite3.db`) plus a
+  `CREATE TABLE IF NOT EXISTS` schema initializer — previously the schema
+  only existed because the production file had it pre-seeded, with no code
+  path that could create it fresh, which made the table impossible to test
+  against in isolation.
+- **Discovered TestFX's OS-level synthetic input (`clickOn`/`write`/`type`)
+  is unreliable in this dev environment** — it goes through the
+  xdg-desktop-portal RemoteDesktop interface, which this environment's
+  session denies ("Session is not allowed to call NotifyPointer methods"),
+  causing an intermittent `NoSuchElementException` from TestFX's
+  `WindowFinder` when the UI test ran alongside other test classes (passed
+  in isolation, flaked in the full suite — confirmed by killing a hung run
+  and reproducing deliberately). Fixed by driving the control directly via
+  `FxRobot.interact(Runnable)` (runs on the FX Application Thread, no OS
+  input injection involved) instead — reliable across 3 consecutive full
+  `./gradlew test` runs afterward. `docs/architecture.md` § "Verifying UI
+  changes" now documents this as the environment-specific convention going
+  forward, superseding the old "no automated UI test suite" framing for
+  covered features (coverage is still just `clinicalLab` as of this phase).
+- Along the way, cleaned up two accidental verification side-effects before
+  finishing: an untracked `app/db/auth.db` left behind by an `:app:run`
+  smoke test of the JavaFX 25.0.4 bump (deleted, not real credential data),
+  and confirmed the tracked `app/db/*.db` files were untouched by the new
+  isolated-file persistence test.
+- Also fixed `docs/AGENTS.md`, which still described the long-removed
+  `server`/`list`/`utilities` modules (stale since Phase 5) — updated to
+  match the current single-`app`-module structure and to mention the
+  TestFX convention.
+
+Deferred: migrating the remaining ~11 flat feature packages; extending
+TestFX coverage to other features as they're touched; the auth model
+(single shared password vs. per-user) was explicitly out of scope for this
+phase.

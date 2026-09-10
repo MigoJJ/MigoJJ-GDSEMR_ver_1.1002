@@ -2,13 +2,12 @@
 
 [versions]
 java = "25"
-javafx = "25.0.1"
-sqlite = "3.46.0.0"
-slf4j = "2.0.17"
+javafx = "25.0.4"
+sqlite = "3.53.4.0"
+slf4j = "2.0.19"
 javafxPlugin = "0.1.0"
 
 [libraries]
-commons-text = { module = "org.apache.commons:commons-text", version = "1.13.0" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
