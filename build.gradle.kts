@@ -28,8 +28,3 @@ subprojects {
 tasks.register("run") {
     dependsOn(":app:run")
 }
-
-// Convenience task to launch the Spring Boot API server
-tasks.register("runServer") {
-    dependsOn(":server:bootRun")
-}

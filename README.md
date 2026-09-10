@@ -4,18 +4,12 @@ JavaFX EMR prototype targeting Java 25 and JavaFX 25.
 
 ## Architecture
 
-```mermaid
-graph TD;
-    app[app (JavaFX UI)] -->|Network/REST| server[server (Spring Boot API)];
-    app --> utilities;
-    app --> list;
-    utilities --> list;
-```
+A single-module JavaFX desktop app. See [docs/architecture.md](docs/architecture.md)
+for the feature package layout, persistence conventions, and auth model.
 
-- **app**: Main JavaFX application.
-- **utilities**: Shared logic and helper classes.
-- **list**: Core data structures and lists.
-- **server**: Spring Boot REST API backend.
+- **app**: the entire product — a JavaFX EMR with ~15 clinical feature areas
+  (thyroid, medication, KCD coding, allergy, vaccine, clinical labs, etc.),
+  each opened as its own window from the main shell (`IttiaApp`).
 
 ## Requirements
 - JDK 25 (Gradle toolchains will download/use it automatically if available)
@@ -24,16 +18,14 @@ graph TD;
 
 ## Build & Run
 - Root task: `./gradlew run` (delegates to `:app:run`)
-- Module tasks: `./gradlew :app:run`, `./gradlew :list:test`, etc.
-- API stub: `./gradlew runServer` (delegates to `:server:bootRun`, serves REST skeleton on port 8080)
+- Module tasks: `./gradlew :app:run`, `./gradlew :app:test`, etc.
 - If multiple JDKs are installed, point Gradle at Java 25 with `export ORG_GRADLE_JAVA_HOME=/path/to/jdk-25`.
 - `./run-gradle.sh` is available as a convenience wrapper; update its paths if you move the project.
 
 ## Notes
 - Java toolchain and version properties are centralized in `gradle.properties`.
 - JavaFX version is configurable via `gradle.properties` (`javafxVersion`).
-- Kotlin DSL templates for Gradle 9.2 live in `templates/` (`build.gradle.kts.template`, `app.build.gradle.kts.template`, `build-logic.build.gradle.kts.template`) to help migrate without version drift between app and build-logic.
-- Spring Boot web skeleton lives in `server/` with health and template endpoints to extend.
+- Kotlin DSL templates for Gradle 9.2 live in `templates/` (`build.gradle.kts.template`, `app.build.gradle.kts.template`, `build-logic.build.gradle.kts.template`) to help migrate without version drift.
 
 ## Changelog
 
@@ -83,3 +75,8 @@ Verified by driving the real running app (see `docs/architecture.md` § Verifyin
 - **Wrote `docs/architecture.md`**, empty until now. Documents the module layout, the flat-vs-hexagonal feature convention (and which to use for new work), the `DbPaths` persistence convention, the new auth layer, and the harness-based UI verification approach used in Phases 3–4.
 
 Deferred: migrating the remaining ~13 flat feature packages to the hexagonal convention, deciding the fate of the unused `server/` REST skeleton.
+
+### 2026-09-10 — Phase 5 (remove dead `server` module; DB tracking cleanup)
+- **Removed the `server` module entirely.** It was a working Spring Boot CRUD skeleton, but `app` never called it over the network (confirmed no HTTP client anywhere in `app`) — pure dead weight since it was written. Removed `server/` from `settings.gradle.kts` and the root `build.gradle.kts` (`runServer` task gone), deleted the now-unused `springBoot` version/plugin entries from `gradle/libs.versions.toml`, and deleted the `server/` directory. `docs/architecture.md` and the README's architecture section updated accordingly (the README's module diagram was also already stale, referencing `utilities`/`list` modules that mapped to the `core` module removed back in Phase 0 — fixed while touching this section).
+- **Cleaned up accidentally-committed database files outside the `app/db/` convention**: `app/bin/main/database/*.db` (4 files, a stale Eclipse-style build-output directory that had been committed to git despite `.gitignore` covering `**/bin/`), `app/build/resources/main/database/*.db` (4 files, live Gradle build output that had also been committed despite `**/build/` being gitignored — untracked via `git rm --cached`, left on disk since it's regenerated on every build), and `app/med_data.db` (an orphaned duplicate at the root of `app/`, confirmed via checksum to differ from the actual active `app/db/med_data.db`). None of the real, actively-used `app/db/*.db` files were touched.
+- Verified with a full `./gradlew clean compileJava compileTestJava test` after each change.

@@ -7,25 +7,21 @@ see that log for the history and reasoning behind each decision below.
 
 ## Modules
 
-```mermaid
-graph TD;
-    app[app - JavaFX desktop UI];
-    server[server - Spring Boot REST API];
-    app -.->|not currently wired together| server;
-```
-
-- **app**: the actual product. A JavaFX desktop EMR with ~15 clinical
-  feature areas (thyroid, medication, KCD coding, allergy, vaccine, clinical
-  labs, etc.), each opened as an independent window from the main shell
-  (`IttiaApp`).
-- **server**: a working Spring Boot CRUD skeleton (`Patient`,
-  `Template`) backed only by an in-memory repository. Not called by `app`
-  over the network today — `app` never issues HTTP requests to it. Treat it
-  as a separate, dormant prototype until a decision is made to either wire
-  it up for real or remove it.
+A single Gradle module: **app**, the entire product. A JavaFX desktop EMR
+with ~15 clinical feature areas (thyroid, medication, KCD coding, allergy,
+vaccine, clinical labs, etc.), each opened as an independent window from
+the main shell (`IttiaApp`).
 
 There is no `core` module — it was deleted in Phase 0 (it was unused
-`gradle init` scaffolding, never imported by `app` or `server`).
+`gradle init` scaffolding, never imported by `app`).
+
+There is no `server` module — a Spring Boot REST API skeleton existed
+through Phase 4 but was never called by `app` over the network (no HTTP
+client anywhere in `app`, dead weight). Removed in Phase 5 rather than
+carrying an unused module indefinitely. If remote/multi-client access is
+ever needed, it should be designed against `app`'s actual persistence
+layer (see below) rather than resurrected from the old skeleton, which
+only had an in-memory, non-persistent `Patient`/`Template` API.
 
 ## Feature package structure
 
@@ -103,11 +99,12 @@ singleton row — don't bolt a second parallel auth path on top.
 
 - Java 25 toolchain (`gradle.properties` / `gradle/libs.versions.toml`,
   kept in sync — see Phase 1 changelog entry for why they can drift).
-- `server` now compiles to real Java 25 bytecode (Spring Boot ≥ 3.5 is
-  required for this — earlier versions' bundled ASM can't parse Java 25
-  class files during `@SpringBootTest` classpath scanning).
 - No `.old` build files should exist alongside the Kotlin DSL files; if you
   see one, it's stale — delete it, don't merge from it.
+- If server-side/remote access is ever added back, note for posterity: a
+  Spring Boot module existed through Phase 4 and required Spring Boot ≥ 3.5
+  to compile real Java 25 bytecode (earlier versions' bundled ASM can't
+  parse Java 25 class files during `@SpringBootTest` classpath scanning).
 
 ## Verifying UI changes
 
