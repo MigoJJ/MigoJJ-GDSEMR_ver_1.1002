@@ -15,6 +15,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -31,6 +32,14 @@ public class IAIFreqFrame extends Stage {
 
     // BMI components
     private final TextField[] bmiInputs = new TextField[3];
+    private final ToggleButton heightUnitToggle = new ToggleButton("cm");
+    private final ToggleButton weightUnitToggle = new ToggleButton("kg");
+
+    // Unit conversion constants: only the metric->imperial direction is a
+    // magic number; the reverse is always derived by division so the two
+    // never drift out of round-trip sync with each other.
+    private static final double CM_PER_INCH = 2.54;        // exact, international yard/pound agreement (1959)
+    private static final double KG_PER_LB = 0.45359237;    // exact, same agreement
 
     // HbA1c components
     private final TextArea hba1cOutputArea = new TextArea();
@@ -70,34 +79,80 @@ public class IAIFreqFrame extends Stage {
 
     private TitledPane createBmiPane() {
         GridPane grid = createFormGrid();
-        String[] bmiLabels = {"Height (cm):", "Weight (kg):", "Waist (cm or inch):"};
-        for (int i = 0; i < bmiLabels.length; i++) {
-            bmiInputs[i] = new TextField();
-            bmiInputs[i].setPromptText(bmiLabels[i].replace(":", ""));
+
+        bmiInputs[0] = new TextField();
+        bmiInputs[1] = new TextField();
+        bmiInputs[2] = new TextField();
+        bmiInputs[2].setPromptText("Waist (cm or inch)");
+
+        configureUnitToggle(heightUnitToggle, bmiInputs[0], "Height", "cm", "in");
+        configureUnitToggle(weightUnitToggle, bmiInputs[1], "Weight", "kg", "lb");
+
+        for (int i = 0; i < bmiInputs.length; i++) {
             final int nextIndex = i + 1;
             bmiInputs[i].setOnAction(e -> {
                 if (nextIndex < bmiInputs.length) bmiInputs[nextIndex].requestFocus();
                 else onSaveBMI();
             });
-            grid.add(new Label(bmiLabels[i]), 0, i);
-            grid.add(bmiInputs[i], 1, i);
         }
+
+        grid.add(new Label("Height:"), 0, 0);
+        grid.add(bmiInputs[0], 1, 0);
+        grid.add(heightUnitToggle, 2, 0);
+
+        grid.add(new Label("Weight:"), 0, 1);
+        grid.add(bmiInputs[1], 1, 1);
+        grid.add(weightUnitToggle, 2, 1);
+
+        grid.add(new Label("Waist:"), 0, 2);
+        grid.add(bmiInputs[2], 1, 2);
+
         Button saveButton = new Button("Save BMI");
         saveButton.setOnAction(e -> onSaveBMI());
-        grid.add(saveButton, 0, bmiLabels.length, 2, 1);
+        grid.add(saveButton, 0, 3, 3, 1);
         return new TitledPane("BMI Calculator", grid);
     }
 
+    /** Wires a toggle so it flips between {@code metricUnit}/{@code imperialUnit} and updates the field's prompt text to match. */
+    private void configureUnitToggle(ToggleButton toggle, TextField field, String label, String metricUnit, String imperialUnit) {
+        toggle.setSelected(false);
+        toggle.setText(metricUnit);
+        field.setPromptText(label + " (" + metricUnit + ")");
+        toggle.setOnAction(e -> {
+            String unit = toggle.isSelected() ? imperialUnit : metricUnit;
+            toggle.setText(unit);
+            field.setPromptText(label + " (" + unit + ")");
+        });
+    }
+
+    private static double inchToCm(double inch) { return inch * CM_PER_INCH; }
+
+    private static double lbToKg(double lb) { return lb * KG_PER_LB; }
+
     private void onSaveBMI() {
         try {
-            double height = Double.parseDouble(bmiInputs[0].getText());
-            double weight = Double.parseDouble(bmiInputs[1].getText());
-            double bmi = weight / Math.pow(height / 100.0, 2.0);
+            double heightRaw = Double.parseDouble(bmiInputs[0].getText());
+            double weightRaw = Double.parseDouble(bmiInputs[1].getText());
+
+            boolean heightIsInch = heightUnitToggle.isSelected();
+            boolean weightIsLb = weightUnitToggle.isSelected();
+
+            double heightCm = heightIsInch ? inchToCm(heightRaw) : heightRaw;
+            double weightKg = weightIsLb ? lbToKg(weightRaw) : weightRaw;
+
+            double bmi = weightKg / Math.pow(heightCm / 100.0, 2.0);
             String category = (bmi < 18.5) ? "Underweight" : (bmi < 25.0) ? "Healthy" : (bmi < 30.0) ? "Overweight" : "Obesity";
             String waist = processWaist(bmiInputs[2].getText());
 
-            String report = String.format("\n< BMI >\n%s : BMI: [ %.2f ] kg/m^2\nHeight : %.1f cm   Weight : %.1f kg%s",
-                    category, bmi, height, weight, waist.isEmpty() ? "" : "   Waist: " + waist + " cm");
+            String heightDisplay = heightIsInch
+                    ? String.format("%.1f in (%.1f cm)", heightRaw, heightCm)
+                    : String.format("%.1f cm", heightCm);
+            String weightDisplay = weightIsLb
+                    ? String.format("%.1f lb (%.1f kg)", weightRaw, weightKg)
+                    : String.format("%.1f kg", weightKg);
+
+            String report = String.format("\n< BMI >\n%s : BMI: [ %.2f ] kg/m^2\nHeight : %s   Weight : %s%s",
+                    category, bmi, heightDisplay, weightDisplay, waist.isEmpty() ? "" : "   Waist: " + waist + " cm");
 
             IAIMain.getTextAreaManager().appendTextToSection(IAITextAreaManager.AREA_O, report + "\n");
             for (TextField field : bmiInputs) field.clear();
@@ -112,7 +167,7 @@ public class IAIFreqFrame extends Stage {
         String w = waistRaw.trim().toLowerCase();
         if (w.contains("i")) {
             double inches = Double.parseDouble(w.replaceAll("[^\\d.]", ""));
-            return String.format("%.1f", inches * 2.54);
+            return String.format("%.1f", inchToCm(inches));
         }
         return w.replaceAll("[^\\d.]", "");
     }
