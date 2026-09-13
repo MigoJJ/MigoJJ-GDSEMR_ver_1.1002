@@ -1,7 +1,7 @@
-package com.emr.gds.features.allergy.view;
+package com.emr.gds.features.allergy.adapter.in.ui;
 
-import com.emr.gds.features.allergy.model.AllergyCause;
-import com.emr.gds.features.allergy.model.SymptomItem;
+import com.emr.gds.features.allergy.domain.AllergyCause;
+import com.emr.gds.features.allergy.domain.SymptomItem;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

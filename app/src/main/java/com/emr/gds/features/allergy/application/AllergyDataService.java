@@ -1,7 +1,7 @@
-package com.emr.gds.features.allergy.service;
+package com.emr.gds.features.allergy.application;
 
-import com.emr.gds.features.allergy.model.AllergyCause;
-import com.emr.gds.features.allergy.model.SymptomItem;
+import com.emr.gds.features.allergy.domain.AllergyCause;
+import com.emr.gds.features.allergy.domain.SymptomItem;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

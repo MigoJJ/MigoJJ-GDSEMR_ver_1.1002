@@ -1,9 +1,8 @@
-package com.emr.gds.features.allergy.controller;
+package com.emr.gds.features.allergy.adapter.in.ui;
 
-import com.emr.gds.features.allergy.model.AllergyCause;
-import com.emr.gds.features.allergy.model.SymptomItem;
-import com.emr.gds.features.allergy.service.AllergyDataService;
-import com.emr.gds.features.allergy.view.AllergyView;
+import com.emr.gds.features.allergy.domain.AllergyCause;
+import com.emr.gds.features.allergy.domain.SymptomItem;
+import com.emr.gds.features.allergy.application.AllergyDataService;
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 import com.emr.gds.input.IAITextAreaManager;
 import javafx.beans.property.SimpleStringProperty;

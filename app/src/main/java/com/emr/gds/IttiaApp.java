@@ -16,7 +16,7 @@ import com.emr.gds.features.ekg.EkgReportStage;
 import com.emr.gds.features.ekg.EkgSimpleReportApp;
 import com.emr.gds.features.ekg.EkgQuickInterpreter;
 import com.emr.gds.features.gout.GoutApp;
-import com.emr.gds.features.allergy.AllergyApp;
+import com.emr.gds.features.allergy.adapter.in.ui.AllergyApp;
 import com.emr.gds.features.bone.DexaRiskAssessmentApp;
 import com.emr.gds.input.IAIFreqFrame;
 import com.emr.gds.input.IAIFxTextAreaManager;

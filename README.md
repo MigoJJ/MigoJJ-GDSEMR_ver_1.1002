@@ -207,3 +207,16 @@ Deferred: migrating the remaining ~11 flat feature packages; extending
 TestFX coverage to other features as they're touched; the auth model
 (single shared password vs. per-user) was explicitly out of scope for this
 phase.
+
+### 2026-09-13 — Phase 9 (allergy feature restructure, fourth pilot)
+Restructured `features/allergy` (588 lines across 6 files, already split into `model/`/`controller`/`service`/`view` sub-packages, just not the hexagonal naming) into `domain/`/`application/`/`adapter/in/ui/`:
+- **`domain/`**: `AllergyCause`, `SymptomItem` — moved as-is. Both use JavaFX `StringProperty`/`BooleanProperty` for `TableView` binding, which technically isn't "plain Java" per the documented `domain/` convention; kept anyway since they're the feature's real entities, not UI code (documented as a deliberate pragmatic exception in `docs/architecture.md`, same spirit as `medication`'s persistence-interface decision).
+- **`application/`**: `AllergyDataService` — provides the feature's static reference data (symptom list, allergen list). No real "business logic" to speak of, but plays the same orchestration role as `thyroid`'s summary service.
+- **`adapter/in/ui/`**: `AllergyController`, `AllergyView`, `AllergyApp` (the `Application` launcher). No persistence anywhere in this feature — purely in-memory session data, so no `adapter/out/` package.
+- Fixed the one external call site (`IttiaApp`) that imported the old package path.
+- **Wrote a real TestFX test** (`AllergyControllerUiTest`, 3 tests) instead of a throwaway harness, per the Phase 8 convention — the reference example for testing a code-built (non-FXML) scene with TestFX, as opposed to `clinicalLab`'s FXML-loaded example. Covers: real reference data loads into both tables with the correct default note text, search filtering narrows/restores the symptom table, and the "Deny All" template menu action rewrites the note correctly. All verified against the real `AllergyController`/`AllergyView`/`AllergyDataService` wiring, no mocking.
+- Confirmed no `app/db/*.db` files were touched by this feature's tests (it has no persistence) — nothing to revert.
+
+**Flagged, not acted on**: investigated `features/ReferenceFile` (1053 lines, now the largest remaining flat feature) as a candidate but found its persistence is unusually entangled with app-wide central services living outside the feature package — see `docs/architecture.md` for the full note. Also found a stray, unrelated clinical-lab-reference CSV (`ai_studio_code.csv`) sitting in that feature's source directory. Both need a deliberate decision, not just size-based next-pick momentum.
+
+Deferred: migrating the remaining ~10 flat feature packages; the `ReferenceFile` architectural decision above.

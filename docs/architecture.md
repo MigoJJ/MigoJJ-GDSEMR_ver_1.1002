@@ -32,10 +32,18 @@ Two styles coexist:
    together in a handful of large classes. This is the legacy style and
    still the majority of the codebase.
 2. **Layered** (`features/history`, `features/thyroid`, `features/medication`,
-   `features/clinicalLab`): split into sub-packages by responsibility,
+   `features/clinicalLab`, `features/allergy`): split into sub-packages by responsibility,
    following a light hexagonal (ports-and-adapters) convention:
    - `domain/` — plain Java, no JavaFX and no JDBC. Entities, enums,
-     calculators, repository *interfaces*.
+     calculators, repository *interfaces*. **Pragmatic exception**:
+     `features/allergy`'s `AllergyCause`/`SymptomItem` use JavaFX
+     `StringProperty`/`BooleanProperty` wrappers for `TableView` binding
+     convenience — technically not "plain Java", but they're the feature's
+     real entities (not UI layout/control code), so they were moved to
+     `domain/` as-is rather than invented a parallel plain-POJO type just to
+     satisfy the letter of this rule. Splitting a bindable view-model out
+     from a plain domain type is legitimate future work, not something to
+     force during a package-move pilot.
    - `application/` — orchestration and business logic that depends only
      on `domain/`. Pure functions/services, independently testable without
      a running UI. Not every feature needs one — `features/medication`
@@ -74,13 +82,39 @@ example for a persisted, FXML-based feature whose persistence class *was*
 a clean fit for a repository interface (note: moving FXML controllers
 means also updating the `fx:controller` attribute in the corresponding
 `.fxml` resource file — this is a runtime-only failure if missed,
-`./gradlew compileJava` won't catch it).
+`./gradlew compileJava` won't catch it); `features/allergy` is the
+reference example for a persisted-nowhere feature (pure static reference
+data, no database at all) with a JavaFX-property-based domain model (see
+the `domain/` pragmatic-exception note above) — its
+`AllergyControllerUiTest` is also the reference example for testing a
+code-built (non-FXML) scene with TestFX.
 
 Migrating the remaining flat features is intentionally incremental — it was
-scoped as one feature at a time (thyroid, then medication, then clinicalLab)
-rather than an all-at-once rewrite, since it touches working clinical UI
-with no automated UI test suite. Do it feature-by-feature, verifying the
-actual running UI after each move (see "Verifying UI changes" below).
+scoped as one feature at a time (thyroid, then medication, then clinicalLab,
+then allergy) rather than an all-at-once rewrite, since it touches working
+clinical UI with (still, mostly) no automated UI test suite — see
+"Verifying UI changes" below for current TestFX coverage. Do it
+feature-by-feature, verifying the actual running UI after each move.
+
+**Flagged for whoever picks the next feature**: `features/ReferenceFile`
+(1053 lines, currently the largest flat feature) looks like an obvious next
+candidate by size, but its persistence is unusually entangled — its
+`ReferenceItem` domain model is actually owned by
+`com.emr.gds.repository.ReferenceRepository` /
+`com.emr.gds.service.ReferenceService`, which live *outside* the feature
+package entirely, alongside the app-wide abbreviations/problems/plan-history
+services (an older, separate "central repository/service" convention that
+predates the per-feature hexagonal layering described here). Restructuring
+`ReferenceFile` cleanly means deciding whether
+to pull those central classes into the feature (touching shared code used
+elsewhere) or leave them and only relocate the feature's own UI classes
+(`ReferenceController`, `ReferenceItemEditController`) into
+`adapter/in/ui/` — a much thinner move than the other pilots. Decide
+deliberately rather than defaulting into it because it's next by size. Also
+noticed in passing: `features/ReferenceFile/ai_studio_code.csv` is a stray
+clinical-lab reference-range CSV that doesn't belong in this feature at
+all (unrelated content, not read by any code) — worth relocating or
+deleting separately, not part of this restructuring work.
 
 ## Persistence
 

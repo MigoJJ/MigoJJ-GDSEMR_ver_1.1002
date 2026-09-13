@@ -1,4 +1,4 @@
-package com.emr.gds.features.allergy.model;
+package com.emr.gds.features.allergy.domain;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

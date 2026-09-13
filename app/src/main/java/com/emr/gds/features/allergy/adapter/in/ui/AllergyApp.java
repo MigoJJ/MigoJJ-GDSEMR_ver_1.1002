@@ -1,6 +1,5 @@
-package com.emr.gds.features.allergy;
+package com.emr.gds.features.allergy.adapter.in.ui;
 
-import com.emr.gds.features.allergy.controller.AllergyController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
