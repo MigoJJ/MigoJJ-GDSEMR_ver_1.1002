@@ -1,4 +1,4 @@
-package com.emr.gds.features.kcd.db;
+package com.emr.gds.features.kcd.adapter.out.persistence;
 
 import java.io.BufferedReader;
 import java.io.File;

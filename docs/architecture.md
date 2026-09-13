@@ -32,7 +32,7 @@ Two styles coexist:
    together in a handful of large classes. This is the legacy style and
    still the majority of the codebase.
 2. **Layered** (`features/history`, `features/thyroid`, `features/medication`,
-   `features/clinicalLab`, `features/allergy`): split into sub-packages by responsibility,
+   `features/clinicalLab`, `features/allergy`, `features/kcd`): split into sub-packages by responsibility,
    following a light hexagonal (ports-and-adapters) convention:
    - `domain/` — plain Java, no JavaFX and no JDBC. Entities, enums,
      calculators, repository *interfaces*. **Pragmatic exception**:
@@ -87,14 +87,22 @@ reference example for a persisted-nowhere feature (pure static reference
 data, no database at all) with a JavaFX-property-based domain model (see
 the `domain/` pragmatic-exception note above) — its
 `AllergyControllerUiTest` is also the reference example for testing a
-code-built (non-FXML) scene with TestFX.
+code-built (non-FXML) scene with TestFX; `features/kcd` is the reference
+example for a persisted feature whose persistence class *was* a clean fit
+for a repository interface (like `clinicalLab`) despite being entirely
+`static` methods before the move (an interface with instance methods works
+fine as the seam even when the implementation happens to hold no instance
+state) — also notable for moving a connection-string constant that had
+oddly lived on the UI class back onto the persistence class where it
+belongs, and for a bundled-classpath-resource database (see the
+Persistence section's `kcd` exception) rather than an `app/db/*.db` file.
 
 Migrating the remaining flat features is intentionally incremental — it was
 scoped as one feature at a time (thyroid, then medication, then clinicalLab,
-then allergy) rather than an all-at-once rewrite, since it touches working
-clinical UI with (still, mostly) no automated UI test suite — see
-"Verifying UI changes" below for current TestFX coverage. Do it
-feature-by-feature, verifying the actual running UI after each move.
+then allergy, then kcd) rather than an all-at-once rewrite, since it
+touches working clinical UI with (still, mostly) no automated UI test
+suite — see "Verifying UI changes" below for current TestFX coverage. Do
+it feature-by-feature, verifying the actual running UI after each move.
 
 **Flagged for whoever picks the next feature**: `features/ReferenceFile`
 (1053 lines, currently the largest flat feature) looks like an obvious next
@@ -116,6 +124,17 @@ clinical-lab reference-range CSV that doesn't belong in this feature at
 all (unrelated content, not read by any code) — worth relocating or
 deleting separately, not part of this restructuring work.
 
+Also noticed (Phase 10) and left alone:
+`features/kcd/adapter/out/persistence/CsvToSqliteImporter.java` is a
+standalone one-off dev tool (has its own `main()`, never invoked by the
+live app) with hardcoded absolute paths from a different machine/user
+(`/home/migowj/git/GDSEMR_ver_0.2/...`) — dead on this machine as-is. Moved
+into the layered structure alongside the feature's real persistence code
+since it's conceptually a persistence utility, but its broken paths were
+not fixed (out of scope for a package-move pilot; fixing it would mean
+guessing what the "correct" paths should be for a tool nobody's run in a
+while).
+
 ## Persistence
 
 - SQLite, one `.db` file per concern, living in `app/db/*.db`.
@@ -135,7 +154,12 @@ deleting separately, not part of this restructuring work.
   (`src/main/resources/database/kcd_database.db`) is a bundled classpath
   resource, not an `app/db/` file. It intentionally does not use
   `DbPaths` — don't "fix" this without a deliberate migration decision, it
-  would silently point KCD at a different (likely nonexistent) file.
+  would silently point KCD at a different (likely nonexistent) file. The
+  connection URL constant lives on
+  `features/kcd/adapter/out/persistence/JdbcKcdRepository` (moved there in
+  Phase 10 from the UI class, `KCDDatabaseManagerJavaFX`, which is where it
+  used to oddly live — persistence code should own its own connection
+  string, not read it off a UI class).
 
 ## Authentication
 
@@ -169,11 +193,11 @@ singleton row — don't bolt a second parallel auth path on top.
 As of Phase 8, `app` has a small automated UI test suite using TestFX
 (`org.testfx:testfx-core` / `testfx-junit5`, see `app/build.gradle.kts`).
 `./gradlew test` passing now does mean *something* about the UI works for
-covered features — but coverage is still thin (only `features/clinicalLab`
-has a TestFX test as of Phase 8; see
-`ClinicalLabControllerUiTest`/`JdbcClinicalLabRepositoryTest`), so for
-features without one, `./gradlew test` passing still does not mean the UI
-works. Phases 3, 4, and 6 verified changes by temporarily pointing
+covered features — but coverage is still thin (as of Phase 10:
+`clinicalLab`, `allergy`, `kcd`; see `ClinicalLabControllerUiTest` for an
+FXML-loaded example, `AllergyControllerUiTest`/`KCDDatabaseManagerJavaFXUiTest`
+for code-built-scene examples), so for features without one, `./gradlew
+test` passing still does not mean the UI works. Phases 3, 4, and 6 verified changes by temporarily pointing
 `application.mainClass` (in `app/build.gradle.kts`) at a throwaway harness
 `Application` that calls the real, unmodified entry point directly (e.g.
 `new IttiaApp().start(new Stage())`, `ThyroidLauncher.openThyroidEmr()`, or

@@ -1,7 +1,9 @@
-package com.emr.gds.features.kcd;
+package com.emr.gds.features.kcd.adapter.in.ui;
 
 import com.emr.gds.input.IAIMain;
-import com.emr.gds.features.kcd.db.KcdDatabaseManager;
+import com.emr.gds.features.kcd.adapter.out.persistence.JdbcKcdRepository;
+import com.emr.gds.features.kcd.domain.KCDRecord;
+import com.emr.gds.features.kcd.domain.KcdRepository;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -39,9 +41,11 @@ public class KCDDatabaseManagerJavaFX {
 
     private Stage stage;
     public Stage getStage() { return stage; }
+    public TableView<KCDRecord> getTable() { return table; }
+    public TextField getSearchField() { return searchField; }
+    public ComboBox<String> getSearchColumnCombo() { return searchColumnCombo; }
 
-    private static final String DB_PATH = "src/main/resources/database/kcd_database.db";
-    public static final String JDBC_URL = "jdbc:sqlite:" + DB_PATH;
+    private final KcdRepository repository = new JdbcKcdRepository();
     private static final DateTimeFormatter ISO_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private TableView<KCDRecord> table;
@@ -177,7 +181,7 @@ public class KCDDatabaseManagerJavaFX {
             @Override
             protected List<KCDRecord> call() throws Exception {
                 updateStatus("Loading data...");
-                return KcdDatabaseManager.getAllRecords();
+                return repository.getAllRecords();
             }
         };
         task.setOnSucceeded(e -> {
@@ -204,9 +208,9 @@ public class KCDDatabaseManagerJavaFX {
         result.ifPresent(record -> {
             try {
                 if (isUpdate) {
-                    KcdDatabaseManager.updateRecord(recordToEdit.getDiseaseCode(), record);
+                    repository.updateRecord(recordToEdit.getDiseaseCode(), record);
                 } else {
-                    KcdDatabaseManager.addRecord(record);
+                    repository.addRecord(record);
                 }
                 loadInitialData();
             } catch (SQLException e) {
@@ -224,7 +228,7 @@ public class KCDDatabaseManagerJavaFX {
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    KcdDatabaseManager.deleteRecord(selectedRecord.getDiseaseCode());
+                    repository.deleteRecord(selectedRecord.getDiseaseCode());
                     loadInitialData();
                 } catch (SQLException e) {
                     showErrorDialog("Database Error", "Could not delete record: " + e.getMessage());

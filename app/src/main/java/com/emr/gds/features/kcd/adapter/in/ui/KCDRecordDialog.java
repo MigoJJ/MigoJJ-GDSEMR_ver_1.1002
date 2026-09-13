@@ -1,5 +1,6 @@
-package com.emr.gds.features.kcd;
+package com.emr.gds.features.kcd.adapter.in.ui;
 
+import com.emr.gds.features.kcd.domain.KCDRecord;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;

@@ -1,20 +1,33 @@
-package com.emr.gds.features.kcd.db;
+package com.emr.gds.features.kcd.adapter.out.persistence;
 
-import com.emr.gds.features.kcd.KCDDatabaseManagerJavaFX;
-import com.emr.gds.features.kcd.KCDRecord;
+import com.emr.gds.features.kcd.domain.KCDRecord;
+import com.emr.gds.features.kcd.domain.KcdRepository;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A manager class for handling all database operations for KCD records.
+ * Note: {@code kcd_database.db} is a bundled classpath resource
+ * (packaged under {@code src/main/resources/database/}), not one of the
+ * {@code app/db/*.db} files, so this deliberately does not use
+ * {@code com.emr.gds.core.db.DbPaths} — see docs/architecture.md §
+ * Persistence for why. The relative path below is resolved against the
+ * working directory the app is launched from, same as before this class
+ * existed (previously this constant lived on the UI class,
+ * {@code KCDDatabaseManagerJavaFX}).
  */
-public class KcdDatabaseManager {
+public class JdbcKcdRepository implements KcdRepository {
+
+    private static final String DB_PATH = "src/main/resources/database/kcd_database.db";
+    private static final String JDBC_URL = "jdbc:sqlite:" + DB_PATH;
+
     private static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(KCDDatabaseManagerJavaFX.JDBC_URL);
+        return DriverManager.getConnection(JDBC_URL);
     }
 
-    public static List<KCDRecord> getAllRecords() throws SQLException {
+    @Override
+    public List<KCDRecord> getAllRecords() throws SQLException {
         List<KCDRecord> records = new ArrayList<>();
         String sql = "SELECT * FROM kcd_codes ORDER BY disease_code";
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
@@ -32,7 +45,8 @@ public class KcdDatabaseManager {
         return records;
     }
 
-    public static void addRecord(KCDRecord record) throws SQLException {
+    @Override
+    public void addRecord(KCDRecord record) throws SQLException {
         String sql = "INSERT INTO kcd_codes(classification, disease_code, check_field, korean_name, english_name, note) VALUES(?,?,?,?,?,?)";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, record.getClassification());
@@ -45,7 +59,8 @@ public class KcdDatabaseManager {
         }
     }
 
-    public static void updateRecord(String originalDiseaseCode, KCDRecord record) throws SQLException {
+    @Override
+    public void updateRecord(String originalDiseaseCode, KCDRecord record) throws SQLException {
         String sql = "UPDATE kcd_codes SET classification=?, disease_code=?, check_field=?, korean_name=?, english_name=?, note=? WHERE disease_code=?";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, record.getClassification());
@@ -59,7 +74,8 @@ public class KcdDatabaseManager {
         }
     }
 
-    public static void deleteRecord(String diseaseCode) throws SQLException {
+    @Override
+    public void deleteRecord(String diseaseCode) throws SQLException {
         String sql = "DELETE FROM kcd_codes WHERE disease_code = ?";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, diseaseCode);

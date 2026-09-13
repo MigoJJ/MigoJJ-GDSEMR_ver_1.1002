@@ -8,8 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import com.emr.gds.features.kcd.db.KcdDatabaseManager;
-import com.emr.gds.features.kcd.KCDDatabaseManagerJavaFX;
+import com.emr.gds.features.kcd.adapter.in.ui.KCDDatabaseManagerJavaFX;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -31,9 +30,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-// Import for KCDDatabaseManagerJavaFX
-import com.emr.gds.features.kcd.KCDDatabaseManagerJavaFX;
 
 /**
  * Manages the creation and actions for the top and bottom toolbars of the application.
