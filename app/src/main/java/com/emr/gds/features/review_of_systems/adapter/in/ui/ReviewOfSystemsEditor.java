@@ -1,5 +1,6 @@
-package com.emr.gds.features.review_of_systems;
+package com.emr.gds.features.review_of_systems.adapter.in.ui;
 
+import com.emr.gds.features.review_of_systems.application.ReviewOfSystemsReportService;
 import com.emr.gds.soap.ros.EMR_ROS_JtableDATA;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
 public class ReviewOfSystemsEditor {
 
@@ -90,83 +90,33 @@ public class ReviewOfSystemsEditor {
     }
 
     private String generateReport() {
-        StringBuilder report = new StringBuilder();
-        report.append("REVIEW OF SYSTEMS:\n");
-        report.append("=========================\n\n");
-
-        boolean hasSelections = false;
-
+        Map<String, List<Boolean>> categorySelections = new HashMap<>();
         for (String category : EMR_ROS_JtableDATA.columnNames()) {
             List<CheckBox> checkBoxes = categoryCheckBoxes.get(category);
-            List<String> selectedItems = new ArrayList<>();
-            List<String> deniedItems = new ArrayList<>();
-
+            List<Boolean> selections = new ArrayList<>();
             for (CheckBox cb : checkBoxes) {
-                if (cb.isSelected()) {
-                    selectedItems.add(cb.getText());
-                } else {
-                    deniedItems.add(cb.getText());
-                }
+                selections.add(cb.isSelected());
             }
-
-            if (!selectedItems.isEmpty()) { // Only include category if there's at least one selected item
-                hasSelections = true;
-                String categoryName = category.replace("<", "").replace(">", "").trim();
-                report.append(String.format("%-45s\n", categoryName.toUpperCase() + ":"));
-
-                int maxRows = Math.max(selectedItems.size(), deniedItems.size());
-                for (int i = 0; i < maxRows; i++) {
-                    String leftCol = "";
-                    if (i < selectedItems.size()) {
-                        leftCol = "    [+] " + selectedItems.get(i);
-                    }
-
-                    String rightCol = "";
-                    if (i < deniedItems.size()) {
-                        rightCol = "[-] " + deniedItems.get(i);
-                    }
-                    report.append(String.format("    %-40s %s\n", leftCol, rightCol));
-                }
-                report.append("\n");
-            }
+            categorySelections.put(category, selections);
         }
-
-        if (!hasSelections) {
-            return "No symptoms selected.";
-        }
-
-        report.append("=========================\n\n");
-        return report.toString();
+        return ReviewOfSystemsReportService.generateReport(categorySelections);
     }
 
     private String[] getItemsForCategory(String category) {
-        switch (category) {
-            case "< General >":
-                return EMR_ROS_JtableDATA.General();
-            case "< Vision >":
-                return EMR_ROS_JtableDATA.Vision();
-            case "< Head_and_Neck >":
-                return EMR_ROS_JtableDATA.Head_and_Neck();
-            case "< Pulmonary >":
-                return EMR_ROS_JtableDATA.Pulmonary();
-            case "< Cardiovascular >":
-                return EMR_ROS_JtableDATA.Cardiovascular();
-            case "< Gastrointestinal >":
-                return EMR_ROS_JtableDATA.Gastrointestinal();
-            case "< Genito-Urinary >":
-                return EMR_ROS_JtableDATA.GenitoUrinary();
-            case "< Hematology/Oncology >":
-                return EMR_ROS_JtableDATA.HematologyOncology();
-            case "< Neurological >":
-                return EMR_ROS_JtableDATA.Neurological();
-            case "< Endocrine >":
-                return EMR_ROS_JtableDATA.Endocrine();
-            case "< Mental Health >":
-                return EMR_ROS_JtableDATA.MentalHealth();
-            case "< Skin and Hair >":
-                return EMR_ROS_JtableDATA.SkinAndHair();
-            default:
-                return new String[0];
-        }
+        return switch (category) {
+            case "< General >" -> EMR_ROS_JtableDATA.General();
+            case "< Vision >" -> EMR_ROS_JtableDATA.Vision();
+            case "< Head_and_Neck >" -> EMR_ROS_JtableDATA.Head_and_Neck();
+            case "< Pulmonary >" -> EMR_ROS_JtableDATA.Pulmonary();
+            case "< Cardiovascular >" -> EMR_ROS_JtableDATA.Cardiovascular();
+            case "< Gastrointestinal >" -> EMR_ROS_JtableDATA.Gastrointestinal();
+            case "< Genito-Urinary >" -> EMR_ROS_JtableDATA.GenitoUrinary();
+            case "< Hematology/Oncology >" -> EMR_ROS_JtableDATA.HematologyOncology();
+            case "< Neurological >" -> EMR_ROS_JtableDATA.Neurological();
+            case "< Endocrine >" -> EMR_ROS_JtableDATA.Endocrine();
+            case "< Mental Health >" -> EMR_ROS_JtableDATA.MentalHealth();
+            case "< Skin and Hair >" -> EMR_ROS_JtableDATA.SkinAndHair();
+            default -> new String[0];
+        };
     }
 }

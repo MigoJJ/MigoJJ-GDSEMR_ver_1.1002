@@ -404,7 +404,7 @@ public class IAMTextArea {
     }
 
     private void executeReviewOfSystemsHandler(TextArea textArea, int index) {
-        executeReflectionBasedEditor("com.emr.gds.features.review_of_systems.ReviewOfSystemsEditor", "Review of Systems", textArea, index);
+        executeReflectionBasedEditor("com.emr.gds.features.review_of_systems.adapter.in.ui.ReviewOfSystemsEditor", "Review of Systems", textArea, index);
     }
 
     private void executePastMedicalHistoryHandler(TextArea textArea, int index) {
