@@ -1,9 +1,9 @@
-package com.emr.gds.features.bone;
+package com.emr.gds.features.bone.adapter.in.ui;
 
+import com.emr.gds.features.bone.application.DexaReportService;
 import com.emr.gds.input.IAIMain;
 import com.emr.gds.input.IAITextAreaManager;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -34,10 +34,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.FontPosture;
 import javafx.stage.Stage;
 
-/**
- * Enhanced Osteoporosis Risk Assessment Tool (DEXA)
- * Combines clean UI, full clinical risk factors, and reliable EMR integration
- */
 public class DexaRiskAssessmentApp extends Application {
 
     private TextField scoreField, ageField;
@@ -47,9 +43,6 @@ public class DexaRiskAssessmentApp extends Application {
     private ToggleGroup scoreTypeToggleGroup;
     private RadioButton tScoreRadioButton, zScoreRadioButton;
 
-    /**
-     * Opens the DEXA window from an already running JavaFX application.
-     */
     public static void open() {
         Platform.runLater(() -> {
             try {
@@ -66,7 +59,7 @@ public class DexaRiskAssessmentApp extends Application {
         initComponents();
 
         Scene scene = new Scene(createLayout(), 600, 680);
-        scene.getStylesheets().add(""); // optional: add CSS later
+        scene.getStylesheets().add("");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
@@ -112,20 +105,14 @@ public class DexaRiskAssessmentApp extends Application {
     private BorderPane createLayout() {
         BorderPane root = new BorderPane();
 
-        // Top: Output Area
         ScrollPane scrollPane = new ScrollPane(outputTextArea);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(220);
         root.setTop(scrollPane);
         BorderPane.setMargin(scrollPane, new Insets(10));
 
-        // Left: Info Panel
         root.setLeft(createInfoPanel());
-
-        // Center: Input Panel
         root.setCenter(createInputPanel());
-
-        // Bottom: Buttons
         root.setBottom(createButtonPanel());
 
         return root;
@@ -173,7 +160,6 @@ public class DexaRiskAssessmentApp extends Application {
         grid.add(new Label("Score Type:"), 0, 3);
         grid.add(scoreTypeBox, 1, 3);
 
-        // Clinical Factors
         VBox factors = new VBox(8,
                 menopauseCheckBox,
                 fragilityFractureCheckBox,
@@ -211,7 +197,7 @@ public class DexaRiskAssessmentApp extends Application {
         try {
             double score = Double.parseDouble(scoreField.getText().trim());
             int age = Integer.parseInt(ageField.getText().trim());
-            String gender = genderComboBox.getValue();
+            String gender = Objects.requireNonNull(genderComboBox.getValue());
             boolean hasFracture = fragilityFractureCheckBox.isSelected();
             boolean isMenopausal = menopauseCheckBox.isSelected();
             boolean onHrt = hrtCheckBox.isSelected();
@@ -219,58 +205,13 @@ public class DexaRiskAssessmentApp extends Application {
             boolean hasStones = stonesCheckBox.isSelected();
             boolean isTScore = tScoreRadioButton.isSelected();
 
-            String report = generateReport(score, isTScore, age, gender, hasFracture, isMenopausal, onHrt, hasTah, hasStones);
+            String report = DexaReportService.generateReport(score, isTScore, age, gender, hasFracture, isMenopausal, onHrt, hasTah, hasStones);
             outputTextArea.setText(report);
 
         } catch (NumberFormatException ex) {
             showAlert(Alert.AlertType.ERROR, "Invalid Input", "Please enter valid numbers for Score and Age.");
         }
     }
-
-    private String generateReport(double score, boolean isTScore, int age, String gender,
-                                  boolean hasFracture, boolean isMenopausal, boolean onHrt, boolean hasTah, boolean hasStones) {
-
-        String scoreType = isTScore ? "T-Score" : "Z-Score";
-        String diagnosis;
-
-        if (isTScore) {
-            if (score <= -2.5) {
-                diagnosis = hasFracture ? "Severe Osteoporosis" : "Osteoporosis";
-            } else if (score < -1.0) {
-                diagnosis = "Osteopenia";
-            } else {
-                diagnosis = "Normal Bone Density";
-            }
-        } else {
-            diagnosis = (score <= -2.0) ? "Below expected range for age" : "Within expected range for age";
-        }
-
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("< DEXA Report - %s >\n", date));
-        sb.append(String.format("Diagnosis: %s (%s: %.1f)\n", diagnosis, scoreType, score));
-        sb.append(String.format("Patient: %d-year-old %s\n", age, gender));
-
-        if ("Female".equals(gender)) {
-            sb.append(String.format("Clinical Factors → Menopausal: %s | Fragility Fx: %s | On HRT: %s | TAH: %s | Kidney Stones: %s\n",
-                    boolToYN(isMenopausal), boolToYN(hasFracture), boolToYN(onHrt), boolToYN(hasTah), boolToYN(hasStones)));
-        } else {
-            sb.append(String.format("Clinical Factors → Fragility Fx: %s | Kidney Stones: %s\n",
-                    boolToYN(hasFracture), boolToYN(hasStones)));
-        }
-
-        sb.append("\nComment>\n");
-        sb.append(String.format("# %s based on %s of %.1f.\n", diagnosis, scoreType, score));
-        if (isTScore && score <= -2.5) {
-            sb.append("# Consider bisphosphonate, denosumab, or anabolic therapy.\n");
-        } else if (isTScore && score <= -1.0) {
-            sb.append("# Lifestyle modification, calcium + vitamin D, repeat DEXA in 2–3 years.\n");
-        }
-        return sb.toString();
-    }
-
-    private String boolToYN(boolean b) { return b ? "Yes" : "No"; }
 
     private void saveToEmr() {
         String report = outputTextArea.getText();
@@ -286,7 +227,7 @@ public class DexaRiskAssessmentApp extends Application {
         }
 
         String stampedReport = report.trim();
-        manager.focusArea(5);  // Objective area
+        manager.focusArea(5);
         manager.insertLineIntoFocusedArea("\n" + stampedReport + "\n");
 
         showAlert(Alert.AlertType.INFORMATION, "Success", "DEXA report saved to EMR (Objective area).");
@@ -313,15 +254,6 @@ public class DexaRiskAssessmentApp extends Application {
         alert.setHeaderText(title);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    // Launch helper if needed
-    public static void launchApp() {
-        launch();
-    }
-    
-    public static void showWindow() {
-        new Thread(() -> Application.launch(DexaRiskAssessmentApp.class)).start();
     }
 
     public static void main(String[] args) {
