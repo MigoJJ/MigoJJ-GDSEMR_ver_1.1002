@@ -2,7 +2,7 @@ package com.emr.gds.shared.ui;
 
 import com.emr.gds.IttiaApp;
 import com.emr.gds.input.IAITextAreaManager;
-import com.emr.gds.features.glp1.Glp1SemaglutideMain;
+import com.emr.gds.features.glp1.adapter.in.ui.Glp1SemaglutideMain;
 import com.emr.gds.service.AbbreviationService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
