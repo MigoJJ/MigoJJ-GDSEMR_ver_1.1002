@@ -1,7 +1,8 @@
-package com.emr.gds.features.ReferenceFile;
+package com.emr.gds.features.ReferenceFile.adapter.in.ui;
 
-import com.emr.gds.features.ReferenceFile.ReferenceItem;
-import com.emr.gds.service.ReferenceService; // New import
+import com.emr.gds.features.ReferenceFile.application.ReferenceItem;
+import com.emr.gds.features.ReferenceFile.application.ReferenceService;
+import com.emr.gds.features.ReferenceFile.ReferenceItemEditController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.animation.PauseTransition;
@@ -27,9 +28,9 @@ import java.io.File;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
-import javafx.scene.layout.VBox; // New import
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-import java.io.IOException; // Re-added import
+import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -80,14 +81,14 @@ public class ReferenceController implements Initializable {
     @FXML
     private TableColumn<ReferenceItem, String> colContents;
     @FXML
-    private TableColumn<ReferenceItem, String> colDirectoryPath; // New column
+    private TableColumn<ReferenceItem, String> colDirectoryPath;
 
     private ObservableList<ReferenceItem> masterData = FXCollections.observableArrayList();
     private ObservableList<ReferenceItem> filteredData = FXCollections.observableArrayList();
     private ObservableList<ReferenceItem> pageData = FXCollections.observableArrayList();
 
-    private File basePath; // Injected base path
-    private ReferenceService referenceService; // Injected service
+    private File basePath;
+    private ReferenceService referenceService;
     private PauseTransition searchDebounce;
     private int currentPageIndex = 0;
 
@@ -103,12 +104,8 @@ public class ReferenceController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         colContents.setCellValueFactory(new PropertyValueFactory<>("contents"));
-        colDirectoryPath.setCellValueFactory(new PropertyValueFactory<>("directoryPath")); // Set cell value factory for new column
+        colDirectoryPath.setCellValueFactory(new PropertyValueFactory<>("directoryPath"));
 
-        // Data loading and initial table population will be handled by initData()
-        // which is called after basePath is set.
-
-        // Add click listener to table rows
         referenceTable.setOnMouseClicked(this::handleTableClick);
         referenceTable.setPlaceholder(new Label("No references yet."));
 
@@ -160,8 +157,6 @@ public class ReferenceController implements Initializable {
 
     private File resolveReferenceDirectory(String directoryPath) {
         if (this.basePath == null) {
-            // Fallback or error handling if basePath is not set.
-            // For now, let's just return null if basePath is not properly initialized.
             logger.warn("ReferenceController.basePath is not set.");
             return null;
         }
@@ -186,15 +181,12 @@ public class ReferenceController implements Initializable {
     private void openDirectoryInFileExplorer(File directory) {
         try {
             if (directory.exists() && directory.isDirectory()) {
-                // For Windows
                 if (System.getProperty("os.name").toLowerCase().contains("win")) {
                     new ProcessBuilder("explorer.exe", directory.getAbsolutePath()).start();
                 }
-                // For Mac
                 else if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                     new ProcessBuilder("open", directory.getAbsolutePath()).start();
                 }
-                // For Linux
                 else if (System.getProperty("os.name").toLowerCase().contains("nix") || System.getProperty("os.name").toLowerCase().contains("nux")) {
                     new ProcessBuilder("xdg-open", directory.getAbsolutePath()).start();
                 }
@@ -208,11 +200,9 @@ public class ReferenceController implements Initializable {
     @FXML
     private void handleAdd() {
         try {
-            // Load the FXML file for the dialog
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/reference_item_edit.fxml"));
             VBox page = loader.load();
 
-            // Create the dialog Stage
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Add Reference Item");
             dialogStage.initModality(Modality.WINDOW_MODAL);
@@ -220,13 +210,11 @@ public class ReferenceController implements Initializable {
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
 
-            // Set the item into the controller
             ReferenceItemEditController controller = loader.getController();
             controller.setDialogStage(dialogStage);
             controller.setBasePath(basePath);
-            controller.setReferenceItem(null); // Indicates add mode
+            controller.setReferenceItem(null);
 
-            // Show the dialog and wait until the user closes it
             dialogStage.showAndWait();
 
             if (controller.isSaveClicked()) {
@@ -242,10 +230,10 @@ public class ReferenceController implements Initializable {
                             return;
                         }
                     }
-                    referenceService.saveReference(newItem); // Save via service
-                    masterData.add(newItem); // Add the saved item (with ID) to masterData
+                    referenceService.saveReference(newItem);
+                    masterData.add(newItem);
                     refreshCategoryFilter();
-                    applyFilters(); // Refresh the table
+                    applyFilters();
                     setStatus("Added reference: " + newItem.getContents());
                 }
             }
@@ -260,11 +248,9 @@ public class ReferenceController implements Initializable {
         ReferenceItem selectedItem = referenceTable.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             try {
-                // Load the FXML file for the dialog
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/reference_item_edit.fxml"));
                 VBox page = loader.load();
 
-                // Create the dialog Stage
                 Stage dialogStage = new Stage();
                 dialogStage.setTitle("Edit Reference Item");
                 dialogStage.initModality(Modality.WINDOW_MODAL);
@@ -272,13 +258,11 @@ public class ReferenceController implements Initializable {
                 Scene scene = new Scene(page);
                 dialogStage.setScene(scene);
 
-                // Set the item into the controller
                 ReferenceItemEditController controller = loader.getController();
                 controller.setDialogStage(dialogStage);
                 controller.setBasePath(basePath);
-                controller.setReferenceItem(selectedItem); // Pass the selected item for editing
+                controller.setReferenceItem(selectedItem);
 
-                // Show the dialog and wait until the user closes it
                 dialogStage.showAndWait();
 
                 if (controller.isSaveClicked()) {
@@ -294,10 +278,8 @@ public class ReferenceController implements Initializable {
                                 return;
                             }
                         }
-                        // The editedItem is the same object as selectedItem,
-                        // so its properties are already updated. Just save.
-                        referenceService.saveReference(editedItem); // Save the updated item
-                        referenceTable.refresh(); // Refresh the table display
+                        referenceService.saveReference(editedItem);
+                        referenceTable.refresh();
                         refreshCategoryFilter();
                         applyFilters();
                         setStatus("Updated reference: " + editedItem.getContents());
@@ -322,10 +304,10 @@ public class ReferenceController implements Initializable {
             alert.setContentText("Are you sure you want to delete this reference?");
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                referenceService.deleteReference(selectedItem); // Delete via service
+                referenceService.deleteReference(selectedItem);
                 masterData.remove(selectedItem);
                 refreshCategoryFilter();
-                applyFilters(); // Refresh the table
+                applyFilters();
                 setStatus("Deleted reference: " + selectedItem.getContents());
             }
         } else {
@@ -342,7 +324,6 @@ public class ReferenceController implements Initializable {
             logger.info("Selected file for Find: {}", file.getAbsolutePath());
             showAlert("Find Action", "Searching for content related to: " + file.getName());
             setStatus("Find requested for: " + file.getName());
-            // In a real application, you would implement search logic based on the file
         }
     }
 
@@ -365,21 +346,19 @@ public class ReferenceController implements Initializable {
         }
         masterData.addAll(referenceService.findAllReferences());
 
-        if (masterData.isEmpty()) { // Add sample data if DB is empty
+        if (masterData.isEmpty()) {
             masterData.add(new ReferenceItem("Drug Information", "Medication A - side effects, dosage", "drugs/med_a"));
             masterData.add(new ReferenceItem("Guidelines", "Hypertension management guidelines 2023", "guidelines/hypertension"));
             masterData.add(new ReferenceItem("Lab Values", "Normal range for Hemoglobin A1c", "labs/hba1c"));
             masterData.add(new ReferenceItem("Drug Information", "Medication B - interactions", "drugs/med_b"));
         }
-        
+
         filteredData.addAll(masterData);
         referenceTable.setItems(pageData);
         refreshCategoryFilter();
         applyFilters();
         setStatus("Loaded " + masterData.size() + " references");
     }
-
-
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

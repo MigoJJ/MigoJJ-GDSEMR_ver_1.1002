@@ -1,8 +1,7 @@
-package com.emr.gds.repository.sqlite;
+package com.emr.gds.features.ReferenceFile.persistence;
 
 import com.emr.gds.core.db.AppDatabaseManager;
-import com.emr.gds.features.ReferenceFile.ReferenceItem;
-import com.emr.gds.repository.ReferenceRepository;
+import com.emr.gds.features.ReferenceFile.application.ReferenceItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +47,9 @@ public class SqliteReferenceRepository implements ReferenceRepository {
     @Override
     public ReferenceItem save(ReferenceItem item) {
         String sql;
-        if (item.getId() == 0) { // New item
+        if (item.getId() == 0) {
             sql = "INSERT INTO \"references\" (category, contents, directory_path) VALUES (?, ?, ?)";
-        } else { // Existing item
+        } else {
             sql = "UPDATE \"references\" SET category = ?, contents = ?, directory_path = ? WHERE id = ?";
         }
 
@@ -69,7 +68,7 @@ public class SqliteReferenceRepository implements ReferenceRepository {
             if (affectedRows > 0 && item.getId() == 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        item.setId(rs.getInt(1)); // Set the generated ID
+                        item.setId(rs.getInt(1));
                     }
                 }
             }

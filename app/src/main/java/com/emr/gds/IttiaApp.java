@@ -6,11 +6,11 @@ import com.emr.gds.core.db.AppDatabaseManager;
 import com.emr.gds.repository.sqlite.SqliteAbbreviationRepository;
 import com.emr.gds.repository.sqlite.SqlitePlanHistoryRepository;
 import com.emr.gds.repository.sqlite.SqliteProblemRepository;
-import com.emr.gds.repository.sqlite.SqliteReferenceRepository; // New import
+import com.emr.gds.features.ReferenceFile.persistence.SqliteReferenceRepository;
 import com.emr.gds.service.AbbreviationService;
 import com.emr.gds.service.PlanHistoryService;
 import com.emr.gds.service.ProblemListService;
-import com.emr.gds.service.ReferenceService; // New import
+import com.emr.gds.features.ReferenceFile.application.ReferenceService;
 import com.emr.gds.features.imaging.adapter.in.ui.ChestXrayReviewStage;
 import com.emr.gds.features.ekg.adapter.in.ui.EkgReportStage;
 import com.emr.gds.features.ekg.adapter.in.ui.EkgSimpleReportApp;
@@ -563,7 +563,7 @@ public class IttiaApp extends Application {
             referenceStage.setScene(new Scene(loader.load()));
             
             // Get the controller and inject the base path and service
-            com.emr.gds.features.ReferenceFile.ReferenceController controller = loader.getController();
+            com.emr.gds.features.ReferenceFile.adapter.in.ui.ReferenceController controller = loader.getController();
             File referenceBasePath = getRepoRoot().resolve("app").resolve("db").resolve("references").toFile();
             controller.setBasePath(referenceBasePath);
             

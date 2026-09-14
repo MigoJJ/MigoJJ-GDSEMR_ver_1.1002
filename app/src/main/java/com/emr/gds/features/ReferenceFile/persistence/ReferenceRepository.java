@@ -1,11 +1,11 @@
-package com.emr.gds.repository;
+package com.emr.gds.features.ReferenceFile.persistence;
 
-import com.emr.gds.features.ReferenceFile.ReferenceItem;
+import com.emr.gds.features.ReferenceFile.application.ReferenceItem;
 import java.util.List;
 import java.util.Optional;
 
 public interface ReferenceRepository {
-    ReferenceItem save(ReferenceItem item); // Saves a new item or updates an existing one
+    ReferenceItem save(ReferenceItem item);
     void delete(ReferenceItem item);
     List<ReferenceItem> findAll();
     Optional<ReferenceItem> findById(int id);
@@ -13,5 +13,4 @@ public interface ReferenceRepository {
     boolean existsByCategoryAndContents(String category, String contents, int excludeId);
     List<String> findDistinctCategories();
     List<ReferenceItem> search(String query, String category);
-    // Add other methods as needed, e.g., findByCategory, findByContents
 }

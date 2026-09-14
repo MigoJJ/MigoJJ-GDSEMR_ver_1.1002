@@ -1,7 +1,6 @@
-package com.emr.gds.service;
+package com.emr.gds.features.ReferenceFile.application;
 
-import com.emr.gds.features.ReferenceFile.ReferenceItem;
-import com.emr.gds.repository.ReferenceRepository;
+import com.emr.gds.features.ReferenceFile.persistence.ReferenceRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
