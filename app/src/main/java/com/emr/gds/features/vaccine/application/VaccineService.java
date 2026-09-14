@@ -1,13 +1,10 @@
-package com.emr.gds.features.vaccine;
+package com.emr.gds.features.vaccine.application;
 
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Handles business logic for vaccine logging and EMR insertion.
- */
 public class VaccineService {
 
     private static final int AREA_PRESENT_ILLNESS = 1;

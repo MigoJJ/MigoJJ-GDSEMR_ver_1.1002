@@ -1,4 +1,4 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.adapter.in.ui;
 
 import com.emr.gds.input.IAIMain;
 import com.emr.gds.input.IAITextAreaManager;
@@ -54,9 +54,9 @@ Others:
                 reportText,
                 summaryText.isEmpty() ? "(none)" : summaryText);
 
-        manager.focusArea(5); // Target 'O>' area
+        manager.focusArea(5);
         manager.insertLineIntoFocusedArea(stampedReport);
-        
+
         showAlert(Alert.AlertType.INFORMATION, "Success", "EKG report saved to EMR.");
     }
 
@@ -69,7 +69,6 @@ Others:
     @FXML
     private void handleReference() {
         try {
-            // Note: This path assumes running from project root, similar to legacy behavior.
             File file = new File("src/main/resources/text/EKG_reference.odt").getAbsoluteFile();
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(file);

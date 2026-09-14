@@ -11,10 +11,10 @@ import com.emr.gds.service.AbbreviationService;
 import com.emr.gds.service.PlanHistoryService;
 import com.emr.gds.service.ProblemListService;
 import com.emr.gds.service.ReferenceService; // New import
-import com.emr.gds.features.imaging.ChestXrayReviewStage;
-import com.emr.gds.features.ekg.EkgReportStage;
-import com.emr.gds.features.ekg.EkgSimpleReportApp;
-import com.emr.gds.features.ekg.EkgQuickInterpreter;
+import com.emr.gds.features.imaging.adapter.in.ui.ChestXrayReviewStage;
+import com.emr.gds.features.ekg.adapter.in.ui.EkgReportStage;
+import com.emr.gds.features.ekg.adapter.in.ui.EkgSimpleReportApp;
+import com.emr.gds.features.ekg.adapter.in.ui.EkgQuickInterpreter;
 import com.emr.gds.features.gout.adapter.in.ui.GoutApp;
 import com.emr.gds.features.allergy.adapter.in.ui.AllergyApp;
 import com.emr.gds.features.bone.adapter.in.ui.DexaRiskAssessmentApp;
@@ -547,7 +547,7 @@ public class IttiaApp extends Application {
      * Opens the EMR template editor.
      */
     private void openTemplateEditor() {
-        com.emr.gds.features.template.TemplateEditStage.open(templateContent ->
+        com.emr.gds.features.template.adapter.in.ui.TemplateEditStage.open(templateContent ->
             textAreaManager.parseAndAppendTemplate(templateContent)
         );
     }

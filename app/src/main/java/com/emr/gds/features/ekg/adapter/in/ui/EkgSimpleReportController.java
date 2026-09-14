@@ -1,11 +1,9 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.adapter.in.ui;
 
+import com.emr.gds.features.ekg.application.EkgReportService;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 
-/**
- * Controller that wires the EKG view with the service.
- */
 public class EkgSimpleReportController {
 
     private final EkgSimpleReportView view;

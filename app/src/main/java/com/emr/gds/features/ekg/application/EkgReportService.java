@@ -1,16 +1,13 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.application;
 
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Domain logic for formatting and pushing EKG reports into the EMR.
- */
 public class EkgReportService {
 
-    private static final int EMR_TARGET_AREA_INDEX = 5; // objective area
+    private static final int EMR_TARGET_AREA_INDEX = 5;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_DATE;
 
     private final EmrBridgeService bridge;

@@ -1,4 +1,4 @@
-package com.emr.gds.features.template;
+package com.emr.gds.features.template.application;
 
 public class TemplateModel {
     private final int id;

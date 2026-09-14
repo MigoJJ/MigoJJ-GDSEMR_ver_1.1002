@@ -266,7 +266,7 @@ public class IAMButtonAction {
         Button b = new Button(title);
         b.setOnAction(e -> {
             try {
-            com.emr.gds.features.vaccine.VaccineAction.open();
+            com.emr.gds.features.vaccine.adapter.in.ui.VaccineAction.open();
             } catch (Exception ex) {
                 System.err.println("Failed to launch Vaccine application: " + ex.getMessage());
             }

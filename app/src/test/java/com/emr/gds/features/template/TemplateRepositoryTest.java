@@ -1,23 +1,15 @@
 package com.emr.gds.features.template;
 
+import com.emr.gds.features.template.application.TemplateModel;
+import com.emr.gds.features.template.persistence.TemplateRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
-import java.nio.file.Files;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test TemplateRepository persistence logic in isolation.
- * Uses a temp directory to avoid mutating the real app/db/*.db files.
- */
 class TemplateRepositoryTest {
-
-    @TempDir
-    Path tempDir;
 
     private TemplateRepository repo;
 

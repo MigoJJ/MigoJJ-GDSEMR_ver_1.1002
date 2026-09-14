@@ -1,6 +1,6 @@
-package com.emr.gds.features.imaging;
+package com.emr.gds.features.imaging.adapter.in.ui;
 
-import com.emr.gds.features.imaging.service.ChestXrayService;
+import com.emr.gds.features.imaging.application.ChestXrayService;
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,16 +23,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/**
- * A JavaFX Stage for conducting a systematic review of a Chest PA (Posteroanterior) X-ray.
- * This tool provides a structured interface for documenting findings across different anatomical areas.
- */
 public class ChestXrayReviewStage extends Stage {
 
-    private static final int EMR_TARGET_AREA_INDEX = 5; // Corresponds to the 'O>' (Objective) text area
+    private static final int EMR_TARGET_AREA_INDEX = 5;
     private static final String CUSTOM_OPTION_TEXT = "Custom...";
 
-    // UI Components
     private ComboBox<String> tracheaComboBox, bonesComboBox, cardiacComboBox, diaphragmComboBox,
             effusionsComboBox, devicesComboBox, comparisonComboBox, historyComboBox;
     private TextField customTracheaField, customBonesField, customCardiacField, customDiaphragmField,
@@ -41,7 +36,6 @@ public class ChestXrayReviewStage extends Stage {
     private TextArea customRulfArea, customRmlfArea, customRllfArea, customLulfArea, customLmlfArea, customLllfArea;
     private TextArea findingsTextArea;
 
-    // Data sources for ComboBoxes
     private final ObservableList<String> tracheaOptions = createObservableList("Midline", "Deviated to the right", "Deviated to the left", "No significant deviation", "Not well visualized");
     private final ObservableList<String> bonesOptions = createObservableList("No acute fractures or dislocations", "Degenerative changes noted", "Normal bony thorax", "Osteopenia", "Sclerotic lesions in [specific area, e.g., T-spine]");
     private final ObservableList<String> cardiacOptions = createObservableList("Normal heart size and contour", "Mild cardiomegaly", "Moderate cardiomegaly", "Borderline enlarged cardiac silhouette", "No pericardial effusion");

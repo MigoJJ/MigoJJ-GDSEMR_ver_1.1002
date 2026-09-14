@@ -1,17 +1,11 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.adapter.in.ui;
 
-import com.emr.gds.features.ekg.EkgReportService;
-import com.emr.gds.features.ekg.EkgSimpleReportController;
-import com.emr.gds.features.ekg.EkgSimpleReportView;
+import com.emr.gds.features.ekg.application.EkgReportService;
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-/**
- * JavaFX version of the simple EKG report window.
- * Delegates to Controller/Service/View to reduce UI/business coupling.
- */
 public class EkgSimpleReportApp extends Stage {
 
     private static EkgSimpleReportApp active;

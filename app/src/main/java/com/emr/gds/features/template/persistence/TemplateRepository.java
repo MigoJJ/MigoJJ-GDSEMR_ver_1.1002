@@ -1,4 +1,6 @@
-package com.emr.gds.features.template;
+package com.emr.gds.features.template.persistence;
+
+import com.emr.gds.features.template.application.TemplateModel;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,11 +16,7 @@ import java.util.List;
 
 public class TemplateRepository {
     private static final String DB_FILENAME = "emr_templates.db";
-    
-    // Using a method to get connection to avoid keeping it open unnecessarily, 
-    // or we could manage a connection pool. For this scale, opening/closing or a single persistent connection is fine.
-    // Here we'll implement a simple persistent connection pattern similar to the original code.
-    
+
     private Connection conn;
 
     public TemplateRepository() {
@@ -40,7 +38,7 @@ public class TemplateRepository {
         } catch (Exception e) {
             System.err.println("Failed to create DB directory: " + e.getMessage());
         }
-        
+
         String url = "jdbc:sqlite:" + dbPath.toAbsolutePath();
         this.conn = DriverManager.getConnection(url);
     }

@@ -1,4 +1,4 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.adapter.in.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

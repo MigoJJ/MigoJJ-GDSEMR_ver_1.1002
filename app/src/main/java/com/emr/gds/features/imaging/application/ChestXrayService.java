@@ -1,12 +1,9 @@
-package com.emr.gds.features.imaging.service;
+package com.emr.gds.features.imaging.application;
 
 import com.emr.gds.infrastructure.service.EmrBridgeService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Utility service to send chest X-ray reports to EMR.
- */
 public class ChestXrayService {
     private static final int EMR_TARGET_AREA_INDEX = 5;
     private static final DateTimeFormatter ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE;

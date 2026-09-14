@@ -1,4 +1,4 @@
-package com.emr.gds.features.ekg;
+package com.emr.gds.features.ekg.adapter.in.ui;
 
 import com.emr.gds.input.IAIMain;
 import com.emr.gds.input.IAITextAreaManager;
@@ -21,10 +21,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-/**
- * SimpleEKGInterpreter - Ultra-fast EKG reporting tool
- * Replaces old EKG.java - Doctor-approved, minimal clicks
- */
 public class EkgQuickInterpreter extends Stage {
 
     private static EkgQuickInterpreter active;

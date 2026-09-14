@@ -1,5 +1,8 @@
-package com.emr.gds.features.template;
+package com.emr.gds.features.template.adapter.in.ui;
 
+import com.emr.gds.features.template.application.TemplateModel;
+import com.emr.gds.features.template.application.TemplateSectionService;
+import com.emr.gds.features.template.persistence.TemplateRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,26 +15,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TemplateEditController {
-
-    public static final String[] TEXT_AREA_TITLES = {
-            "CC>", "PI>", "ROS>", "PMH>", "S>",
-            "O>", "Physical Exam>", "A>", "P>", "Comment>"
-    };
-
-    private static final Pattern HEADER_PATTERN = Pattern.compile(
-            "^\\s*(CC>|PI>|ROS>|PMH>|S>|O>|Physical Exam>|A>|P>|Comment>)\\s*(.*)$"
-    );
 
     @FXML private TableView<TemplateModel> templateTable;
     @FXML private TableColumn<TemplateModel, String> nameColumn;
@@ -39,6 +28,7 @@ public class TemplateEditController {
     @FXML private TextArea contentArea;
 
     private TemplateRepository repository;
+    private TemplateSectionService sectionService;
     private Consumer<String> onUseCallback;
     private TemplateModel selectedTemplate;
 
@@ -47,14 +37,22 @@ public class TemplateEditController {
         loadTemplates();
     }
 
+    public void setSectionService(TemplateSectionService service) {
+        this.sectionService = service;
+    }
+
     public void setOnUseCallback(Consumer<String> callback) {
         this.onUseCallback = callback;
     }
 
     @FXML
     public void initialize() {
+        if (sectionService == null) {
+            sectionService = new TemplateSectionService();
+        }
+
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        
+
         templateTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 selectTemplate(newVal);
@@ -101,9 +99,9 @@ public class TemplateEditController {
         } else {
             repository.updateTemplate(selectedTemplate.getId(), name, content);
         }
-        
+
         loadTemplates();
-        handleNew(); // Reset selection after save
+        handleNew();
     }
 
     @FXML
@@ -117,7 +115,7 @@ public class TemplateEditController {
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText(null);
         alert.setContentText("Delete this template?");
-        
+
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             repository.deleteTemplate(selectedTemplate.getId());
@@ -131,14 +129,13 @@ public class TemplateEditController {
         String rawContent = contentArea.getText();
         if (rawContent.isEmpty()) return;
 
-        LinkedHashMap<String, List<String>> sections = parseSections(rawContent);
-        String finalOutput = buildOrderedOutput(sections);
+        LinkedHashMap<String, List<String>> sections = sectionService.parseSections(rawContent);
+        String finalOutput = sectionService.buildOrderedOutput(sections);
 
         if (onUseCallback != null) {
             onUseCallback.accept(finalOutput);
         }
 
-        // Close the window
         Stage stage = (Stage) nameField.getScene().getWindow();
         stage.close();
     }
@@ -149,56 +146,5 @@ public class TemplateEditController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    // --- Parser Logic (Ported from IAFMainEdit) ---
-
-    private LinkedHashMap<String, List<String>> parseSections(String content) {
-        LinkedHashMap<String, List<String>> sections = new LinkedHashMap<>();
-        for (String title : TEXT_AREA_TITLES) {
-            sections.put(title, new ArrayList<>());
-        }
-        String currentSection = null;
-        for (String line : content.split("\\r?\\n", -1)) {
-            Matcher m = HEADER_PATTERN.matcher(line);
-            if (m.matches()) {
-                currentSection = m.group(1);
-                String afterHeader = m.group(2).trim();
-                if (!afterHeader.isEmpty()) {
-                    sections.get(currentSection).add(afterHeader);
-                }
-            } else if (currentSection != null) {
-                sections.get(currentSection).add(line);
-            } else {
-                // If content appears before any header, put it in comments or ignore
-                if (sections.containsKey("Comment>")) {
-                    sections.get("Comment>").add(line);
-                }
-            }
-        }
-        return sections;
-    }
-
-    private String buildOrderedOutput(LinkedHashMap<String, List<String>> sections) {
-        StringBuilder out = new StringBuilder();
-        // Fixed order of sections in the EMR
-        List<String> order = Arrays.asList("CC>", "PI>", "PMH>", "S>", "ROS>", "O>", "Physical Exam>", "A>", "P>", "Comment>");
-
-        for (String label : order) {
-            List<String> lines = sections.getOrDefault(label, Collections.emptyList());
-            if (lines.isEmpty() || lines.stream().allMatch(String::isBlank)) continue;
-
-            out.append(label);
-            String firstLineContent = lines.get(0).trim();
-            if (!firstLineContent.isEmpty()) {
-                out.append(' ').append(firstLineContent);
-            }
-            out.append('\n');
-
-            for (int i = 1; i < lines.size(); i++) {
-                out.append("\t").append(lines.get(i)).append('\n');
-            }
-        }
-        return out.toString().trim();
     }
 }

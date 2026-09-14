@@ -1,6 +1,6 @@
-package com.emr.gds.features.vaccine;
+package com.emr.gds.features.vaccine.adapter.in.ui;
 
-import com.emr.gds.features.vaccine.VaccineConstants;
+import com.emr.gds.features.vaccine.application.VaccineConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,9 +17,6 @@ import javafx.stage.StageStyle;
 
 import java.util.function.Consumer;
 
-/**
- * View-only class that builds the Vaccine palette UI.
- */
 public class VaccineView {
 
     private static final double FRAME_WIDTH = 500;

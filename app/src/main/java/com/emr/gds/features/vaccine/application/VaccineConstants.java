@@ -1,20 +1,9 @@
-package com.emr.gds.features.vaccine;
+package com.emr.gds.features.vaccine.application;
 
-/**
- * A final class to hold constants for the vaccine module, primarily for UI elements.
- * This class cannot be instantiated.
- */
 public final class VaccineConstants {
 
-    /**
-     * Private constructor to prevent instantiation of this utility class.
-     */
     private VaccineConstants() {}
 
-    /**
-     * An array of strings representing UI elements for the vaccine selection window.
-     * Headers are prefixed with "###", and action items are included at the end.
-     */
     public static final String[] UI_ELEMENTS = {
             "### Respiratory Vaccines",
             "Sanofi's Vaxigrip® Vaccine(H3N2)",

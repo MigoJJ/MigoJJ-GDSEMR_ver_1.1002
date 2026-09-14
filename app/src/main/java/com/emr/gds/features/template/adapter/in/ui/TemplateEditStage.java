@@ -1,5 +1,7 @@
-package com.emr.gds.features.template;
+package com.emr.gds.features.template.adapter.in.ui;
 
+import com.emr.gds.features.template.application.TemplateSectionService;
+import com.emr.gds.features.template.persistence.TemplateRepository;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,14 +19,14 @@ public class TemplateEditStage {
             Parent root = loader.load();
 
             TemplateEditController controller = loader.getController();
-            // Initialize repository and callback
             controller.setRepository(new TemplateRepository());
+            controller.setSectionService(new TemplateSectionService());
             controller.setOnUseCallback(onTemplateSelected);
 
             Stage stage = new Stage();
             stage.setTitle("EMR Template Editor (JavaFX)");
             stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL); // Make it modal
+            stage.initModality(Modality.APPLICATION_MODAL);
             stage.show();
 
         } catch (IOException e) {
