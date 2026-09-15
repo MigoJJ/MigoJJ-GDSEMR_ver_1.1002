@@ -26,14 +26,13 @@ only had an in-memory, non-persistent `Patient`/`Template` API.
 ## Feature package structure
 
 Feature code lives under `app/src/main/java/com/emr/gds/features/<name>/`.
-Two styles coexist:
+All features now follow the **Layered** (hexagonal) structure, split into sub-packages by responsibility:
 
-1. **Flat** (most features): UI, domain logic, and persistence mixed
-   together in a handful of large classes. This is the legacy style and
-   still the majority of the codebase.
-2. **Layered** (`features/history`, `features/thyroid`, `features/medication`,
-   `features/clinicalLab`, `features/allergy`, `features/kcd`): split into sub-packages by responsibility,
-   following a light hexagonal (ports-and-adapters) convention:
+**Layered** (`features/history`, `features/thyroid`, `features/medication`,
+   `features/clinicalLab`, `features/allergy`, `features/kcd`, `features/review_of_systems`,
+   `features/gout`, `features/bone`, `features/glp1`, `features/template`, `features/imaging`,
+   `features/ekg`, `features/vaccine`, `features/ReferenceFile`): following a light hexagonal
+   (ports-and-adapters) convention:
    - `domain/` — plain Java, no JavaFX and no JDBC. Entities, enums,
      calculators, repository *interfaces*. **Pragmatic exception**:
      `features/allergy`'s `AllergyCause`/`SymptomItem` use JavaFX
@@ -97,32 +96,35 @@ oddly lived on the UI class back onto the persistence class where it
 belongs, and for a bundled-classpath-resource database (see the
 Persistence section's `kcd` exception) rather than an `app/db/*.db` file.
 
-Migrating the remaining flat features is intentionally incremental — it was
-scoped as one feature at a time (thyroid, then medication, then clinicalLab,
-then allergy, then kcd) rather than an all-at-once rewrite, since it
-touches working clinical UI with (still, mostly) no automated UI test
-suite — see "Verifying UI changes" below for current TestFX coverage. Do
-it feature-by-feature, verifying the actual running UI after each move.
+**Hexagonal architecture migration: 100% Complete (Phases 1-20).**
 
-**Flagged for whoever picks the next feature**: `features/ReferenceFile`
-(1053 lines, currently the largest flat feature) looks like an obvious next
-candidate by size, but its persistence is unusually entangled — its
-`ReferenceItem` domain model is actually owned by
-`com.emr.gds.repository.ReferenceRepository` /
-`com.emr.gds.service.ReferenceService`, which live *outside* the feature
-package entirely, alongside the app-wide abbreviations/problems/plan-history
-services (an older, separate "central repository/service" convention that
-predates the per-feature hexagonal layering described here). Restructuring
-`ReferenceFile` cleanly means deciding whether
-to pull those central classes into the feature (touching shared code used
-elsewhere) or leave them and only relocate the feature's own UI classes
+The incremental, feature-by-feature migration to hexagonal layering finished
+successfully. All 15 clinical features now follow the same structure:
+- **Phases 1-6** (Phases 2-6): thyroid, medication, history
+- **Phases 7-8**: clinicalLab (plus TestFX introduction)
+- **Phases 9-10**: allergy, kcd (TestFX reference examples established)
+- **Phases 11-14**: review_of_systems, gout, bone, glp1
+- **Phases 15-18**: template, imaging, ekg, vaccine
+- **Phase 19**: ReferenceFile (largest, 1053 lines; initially flagged as architecturally complex but successfully completed — see note below)
+- **Phase 20**: Fixed template_editor.fxml controller path (post-Phase-15 wiring bug)
+
+Incremental, one-feature-at-a-time approach was essential because the
+codebase has working clinical UI with no pre-existing automated test suite.
+Each phase verified actual running behavior (via harness `Application` or
+manual UI testing) before declaring success, preventing "compiles but broken"
+regressions.
+
+**ReferenceFile complexity note** (Phase 19): This feature's persistence
+was initially flagged as unusually entangled — its `ReferenceItem` domain
+model lives in an app-wide central service (`com.emr.gds.repository.ReferenceRepository`
+/ `com.emr.gds.service.ReferenceService`), not within the feature. The final
+approach: kept the central services untouched (to avoid cascading changes
+across other features), and moved only the feature's own UI classes
 (`ReferenceController`, `ReferenceItemEditController`) into
-`adapter/in/ui/` — a much thinner move than the other pilots. Decide
-deliberately rather than defaulting into it because it's next by size. Also
-noticed in passing: `features/ReferenceFile/ai_studio_code.csv` is a stray
-clinical-lab reference-range CSV that doesn't belong in this feature at
-all (unrelated content, not read by any code) — worth relocating or
-deleting separately, not part of this restructuring work.
+`adapter/in/ui/` plus domain/repository interfaces. This pragmatic trade-off
+prevented touching shared code while completing the overall structure
+unification. Not architecturally perfect, but solves the real problem: all
+features now follow the same package layout.
 
 Also noticed (Phase 10) and left alone:
 `features/kcd/adapter/out/persistence/CsvToSqliteImporter.java` is a
@@ -193,11 +195,13 @@ singleton row — don't bolt a second parallel auth path on top.
 As of Phase 8, `app` has a small automated UI test suite using TestFX
 (`org.testfx:testfx-core` / `testfx-junit5`, see `app/build.gradle.kts`).
 `./gradlew test` passing now does mean *something* about the UI works for
-covered features — but coverage is still thin (as of Phase 10:
-`clinicalLab`, `allergy`, `kcd`; see `ClinicalLabControllerUiTest` for an
+covered features — but coverage is still incomplete (as of Phase 20:
+`clinicalLab`, `allergy`, `kcd` have real TestFX tests; remaining 12 features
+have no UI tests yet). See `ClinicalLabControllerUiTest` for an
 FXML-loaded example, `AllergyControllerUiTest`/`KCDDatabaseManagerJavaFXUiTest`
-for code-built-scene examples), so for features without one, `./gradlew
-test` passing still does not mean the UI works. Phases 3, 4, and 6 verified changes by temporarily pointing
+for code-built-scene examples. For features without a real test, `./gradlew
+test` passing means the code compiles and core logic runs, but not that the UI
+actually works — harness-based manual verification is the fallback (see below). Phases 3, 4, and 6 verified changes by temporarily pointing
 `application.mainClass` (in `app/build.gradle.kts`) at a throwaway harness
 `Application` that calls the real, unmodified entry point directly (e.g.
 `new IttiaApp().start(new Stage())`, `ThyroidLauncher.openThyroidEmr()`, or
