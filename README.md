@@ -304,7 +304,17 @@ Fixed a controller-wiring bug introduced during Phase 15:
 - **Fix**: Updated FXML `fx:controller` attribute to correct path
 - **Verification**: Build passes, all template buttons now functional
 
-**Final Status**: All 20 phases complete. Hexagonal architecture migration **100% done**.
-- **Test coverage**: TestFX tests written for `clinicalLab`, `allergy`, `kcd`; remaining 6 features deferred to next work session
-- **Architecture**: All features now follow `domain/` → `application/` → `adapter/in/ui/` → `adapter/out/persistence/` pattern
+### 2026-09-18 — Phase 20a (ReferenceFile FXML controller path fix)
+
+Follow-up bugfix for Phase 19 migration of ReferenceFile:
+- **Problem**: `reference_frame.fxml` was pointing to old package path (`com.emr.gds.features.ReferenceFile.ReferenceController`)
+- **Actual location**: `com.emr.gds.features.ReferenceFile.adapter.in.ui.ReferenceController`
+- **Result**: Reference Manager UI failed to load when clicking "Reference" button
+- **Fix**: Updated FXML `fx:controller` attribute to correct path
+- **Verification**: Build passes, Reference Manager now loads successfully
+
+**Final Status**: All 20 phases + post-migration bugfixes complete. Hexagonal architecture migration **100% done**.
+- **Test coverage**: TestFX tests written for `clinicalLab`, `allergy`, `kcd`; service-layer unit tests added for `review_of_systems`, `gout`; remaining 10 features deferred
+- **Architecture**: All 15 features now follow `domain/` → `application/` → `adapter/in/ui/` → `adapter/out/persistence/` pattern
 - **Code quality**: ~150K lines refactored, real business logic extracted to application layer, UI decoupled from persistence
+- **Known issues fixed**: Two FXML controller path mismatches (template_editor, reference_frame) caught and resolved during real app verification
